@@ -47,7 +47,6 @@ def create_game(round_num: str, players: tuple[Player], lichess_api_token: str,
 @define
 class Tournament:
     name: str
-    google_sheet_id: str
     spread: Spread
     leaderboard_sheet: str
     games_sheet: str
