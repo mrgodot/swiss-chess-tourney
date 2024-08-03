@@ -1,10 +1,10 @@
 from random import shuffle
 
 import pandas as pd
+from gspread_pandas import Spread
 from attrs import define, field
 
 from tournament.game import Game
-from tournament.gsheet import get_spread
 from tournament.lichess import create_lichess_challenge
 from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome
@@ -48,12 +48,12 @@ def create_game(round_num: str, players: tuple[Player], lichess_api_token: str,
 class Tournament:
     name: str
     google_sheet_id: str
+    spread: Spread
     leaderboard_sheet: str
     games_sheet: str
-    google_creds: str
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
-    next_round: int = field(default=None)
+    next_round: int = field(default=None, init=False)
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
@@ -70,8 +70,7 @@ class Tournament:
         """instantiate list of Players from Google spreadsheet"""
         self.players = []
 
-        players_spread = get_spread(self.google_sheet_id, self.leaderboard_sheet, self.google_creds)
-        players_df = players_spread.sheet_to_df()
+        players_df = self.spread.sheet_to_df(sheet=self.leaderboard_sheet)
 
         for name, series in players_df.iterrows():
             self.players.append(Player.from_series(series))
@@ -80,8 +79,7 @@ class Tournament:
         """instantiate list of Games from Google spreadsheet"""
         self.games = []
 
-        games_spread = get_spread(self.google_sheet_id, self.games_sheet, self.google_creds)
-        games_df = games_spread.sheet_to_df()
+        games_df = self.spread.sheet_to_df(sheet=self.games_sheet)
 
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
@@ -106,8 +104,8 @@ class Tournament:
         """update and sort leaderboard spreadsheet"""
         df = pd.DataFrame([player.to_dict() for player in self.players])
 
-        players_spread = get_spread(self.google_sheet_id, self.leaderboard_sheet, self.google_creds)
-        players_spread.df_to_sheet(
+        self.spread.df_to_sheet(
+            sheet=self.leaderboard_sheet,
             df=df.sort_values(by=['Score', 'Elo'], ascending=False),
             index=False)
 
