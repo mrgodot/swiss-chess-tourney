@@ -1,5 +1,7 @@
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, timedelta
 from enum import Enum
+
+import pytz
 
 
 MILLISECONDS_PER_SECOND = 1000
@@ -21,7 +23,7 @@ def expires_at_timestamp(days_until_expired) -> int:
     """return timestamp when game expires"""
 
     # last midnight in epoch seconds
-    last_utc_midnight = datetime.now(UTC).replace(
+    last_utc_midnight = datetime.now(pytz.UTC).replace(
         hour=0, minute=0, second=0, microsecond=0)
 
     # Calculate the expiration time (e.g. 7 days from now at midnight UTC)
