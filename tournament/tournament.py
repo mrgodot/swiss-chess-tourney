@@ -152,7 +152,7 @@ class Tournament:
             elo_cost=elo_cost,
             **kwargs)
 
-        return player_pairs_from_matrix(pairing_matrix)
+        return player_pairs_from_matrix(pairing_matrix, self.players)
 
     def create_next_round(self, lichess_api_token: str, **kwargs):
         """create games for next round"""
