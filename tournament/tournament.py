@@ -24,7 +24,10 @@ class Tournament:
 
     @property
     def next_round(self):
-        return self.games[-1].round_num + 1
+        if len(self.games) == 0:
+            return 1
+        else:
+            return self.games[-1].round_num + 1
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
