@@ -90,38 +90,36 @@ class Tournament:
         self._update_players()
         self.update_leaderboard_sheet()
 
-    def create_game(self, round_num: int, players: tuple[Player], lichess_api_token: str,
+    def create_game(self, round_num: int, players: list[Player], lichess_api_token: str,
                     days_until_expired: int = 7, testing: bool = False, **kwargs) -> Game:
         """create a Game between the two `players`. Use kwargs to pass additional params to `create_lichess_challenge"""
 
-        player_pair = [players[0], players[1]]
-
         # randomize side if not bye
         if not players[1].is_bye:
-            shuffle(player_pair)
+            shuffle(players)
 
         expires_at = expires_at_timestamp(days_until_expired)
-        expires_at_datetime = timestamp_to_datetime(expires_at)
 
         if testing:
             game_link = '<testing: url here>'
         else:
             game_link = create_lichess_challenge(
                 round_num=round_num,
-                white_player=player_pair[0],
-                black_player=player_pair[1],
+                white_player=players[0],
+                black_player=players[1],
                 api_token=lichess_api_token,
+                expires_at=expires_at,
                 **kwargs)
 
         game = Game(
             round_num=round_num,
-            white=player_pair[0].name,
-            black=player_pair[1].name,
-            score_delta=player_pair[0].score - player_pair[1].score,
+            white=players[0].name,
+            black=players[1].name,
+            score_delta=players[0].score - players[1].score,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
             outcome=Outcome.EXPIRED if players[1].is_bye else Outcome.PENDING,
-            expires=expires_at_datetime)
+            expires=timestamp_to_datetime(expires_at))
 
         # add game to tournament
         self.games.append(game)
