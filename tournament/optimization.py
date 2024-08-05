@@ -3,9 +3,8 @@ import numpy as np
 import cvxpy as cp
 
 
-def round_pairings(players: list, rematch_cost: float = 1.5,
-                   within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
-                   solver=cp.GLPK_MI) -> list:
+def round_pairings(players: list, rematch_cost: float, within_fed_cost: float, elo_cost: float,
+                   solver=cp.GLPK_MI, **kwargs) -> list:
 
     n = len(players)
 

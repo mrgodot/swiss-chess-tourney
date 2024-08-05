@@ -8,6 +8,7 @@ from attrs import define, field
 
 from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
+from tournament.optimization import round_pairings
 from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
 
@@ -142,50 +143,10 @@ class Tournament:
         return game
 
     def get_pairings(self, rematch_cost: float = 1.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
-                     solver=cp.GLPK_MI) -> list[list[Player]]:
+                     **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
         n = len(self.players)
-
-        # Binary variables for pairing
-        x = cp.Variable((n, n), boolean=True)
-
-        # Cost matrix
-        cost_matrix = np.zeros((n, n))
-        for i in range(n):
-            for j in range(i + 1, n):
-                score_delta = np.abs(self.players[i].score - self.players[j].score)
-                rematch_penalty = rematch_cost * self.players[i].match_count(self.players[j].name)
-                federation_penalty = within_fed_cost * float(
-                    self.players[i].federation == self.players[j].federation)
-                elo_difference = elo_cost * np.abs(self.players[i].elo - self.players[j].elo)
-
-                cost = score_delta + rematch_penalty + federation_penalty + elo_difference
-                cost_matrix[i, j] = cost
-                cost_matrix[j, i] = cost  # symmetry
-
-        # Objective function
-        objective = cp.Minimize(cp.sum(cp.multiply(cost_matrix, x)))
-
-        # Constraints
-        constraints = []
-
-        # Each player should be paired with exactly one other player
-        for i in range(n):
-            constraints.append(cp.sum(x[i, :]) == 1)
-            constraints.append(cp.sum(x[:, i]) == 1)
-
-        # No player should be paired with themselves
-        for i in range(n):
-            constraints.append(x[i, i] == 0)
-
-        # Symmetry constraint (implicitly handled by the cost matrix symmetry)
-
-        # Solve the problem
-        problem = cp.Problem(objective, constraints)
-        problem.solve(solver=solver)
-
-        # Get the optimal pairing
-        pairing = np.array(x.value, dtype=int)
+        pairing_matrix = round_pairings(self.players, rematch_cost, within_fed_cost, elo_cost, **kwargs)
 
         # extract player matches from pairing matrix
         player_pairs = []
@@ -193,7 +154,7 @@ class Tournament:
 
         for i in range(n):
             if i not in matched_players:
-                j = np.argmax(pairing[i])
+                j = np.argmax(pairing_matrix[i])
                 player_pairs.append([self.players[i], self.players[j]])
 
                 matched_players.update([i, j])
