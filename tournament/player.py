@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 from tournament.game import Game
-from tournament.utils import Outcome
+from tournament.utils import Outcome, PlayerSheetHeader
 
 
 @define
@@ -20,8 +20,8 @@ class Player:
     def from_series(cls, series: pd.Series, initial_elo: float):
         return cls(
             name=str(series.name),
-            handle=series['Lichess'],
-            federation=series['Federation'],
+            handle=series[PlayerSheetHeader.HANDLE.value],
+            federation=series[PlayerSheetHeader.FEDERATION.value],
             elo=initial_elo)
 
     @classmethod
@@ -50,11 +50,11 @@ class Player:
 
     def to_dict(self) -> dict:
         return {
-            'Player': self.name,
-            'Lichess': self.handle,
-            'Federation': self.federation,
-            'Elo': self.elo,
-            'Score': self.score}
+            PlayerSheetHeader.PLAYER.value: self.name,
+            PlayerSheetHeader.HANDLE.value: self.handle,
+            PlayerSheetHeader.FEDERATION.value: self.federation,
+            PlayerSheetHeader.ELO.value: self.elo,
+            PlayerSheetHeader.SCORE.value: self.score}
 
     def match_count(self, opponent: str) -> int:
         return sum(opponent in {game.white, game.black} for game in self.games)
@@ -66,7 +66,7 @@ class Player:
 
     def update(self, game: Game, opponent_elo: float):
         self.games.append(game)
-        if game.outcome != Outcome.expired and not game.bye:
+        if game.outcome != Outcome.EXPIRED and not game.bye:
             self._update_elo(
                 opponent_elo=opponent_elo,
                 points=game.get_points(self.name))

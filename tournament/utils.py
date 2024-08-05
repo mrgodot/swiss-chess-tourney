@@ -8,10 +8,35 @@ MILLISECONDS_PER_SECOND = 1000
 
 
 class Outcome(Enum):
-    white = 'White'
-    black = 'Black'
-    draw = 'Draw'
-    expired = 'Expired'
+    PENDING = ''
+    WHITE = 'White'
+    BLACK = 'Black'
+    DRAW = 'Draw'
+    EXPIRED = 'Expired'
+
+
+class SheetName(Enum):
+    PLAYERS = 'Leaderboard'
+    GAMES = 'Games'
+
+
+class PlayerSheetHeader(Enum):
+    PLAYER = 'Player'
+    HANDLE = 'Lichess Handle'
+    FEDERATION = 'Federation'
+    ELO = 'Elo'
+    SCORE = 'Score'
+
+
+class GamesSheetHeader(Enum):
+    ROUND = 'Round'
+    WHITE = 'White'
+    BLACK = 'Black'
+    SCORE_DELTA = 'Score Delta'
+    GAMES_PLAYED = 'Games Played'
+    MATCH_LINK = 'Match Link'
+    OUTCOME = 'Outcome'
+    EXPIRES = 'Expires'
 
 
 def elo_odds(white_elo: float, black_elo: float) -> float:
