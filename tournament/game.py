@@ -9,13 +9,13 @@ from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
 @define
 class Game:
     round_num: int = field(converter=int)
-    white: str
-    black: str
-    score_delta: float = field(default=None)
-    games_played: int = field(default=None)
-    match_link: str = field(default=None)  # lichess url
-    expires: datetime = field(default=None)
-    outcome: Outcome = field(default=None)
+    white: str  # player name
+    black: str  # player name
+    score_delta: float
+    games_played: int
+    match_link: str  # lichess url
+    expires: datetime
+    outcome: Outcome = field(default=Outcome.PENDING)
 
     @classmethod
     def from_series(cls, series: pd.Series):
@@ -26,7 +26,8 @@ class Game:
             score_delta=series[GamesSheetHeader.SCORE_DELTA.value],
             games_played=series[GamesSheetHeader.GAMES_PLAYED.value],
             match_link=series[GamesSheetHeader.MATCH_LINK.value],
-            outcome=Outcome(series[GamesSheetHeader.OUTCOME.value]))
+            outcome=series[GamesSheetHeader.OUTCOME.value],
+            expires=series[GamesSheetHeader.EXPIRES.value])
 
     @property
     def bye(self):
