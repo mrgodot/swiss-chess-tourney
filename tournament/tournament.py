@@ -7,7 +7,7 @@ from attrs import define, field
 from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.player import Player
-from tournament.utils import PlayerSheetHeader, expires_at_timestamp, timestamp_to_datetime, Outcome
+from tournament.utils import PlayerSheetHeader, expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
 
 
 @define
@@ -125,3 +125,7 @@ class Tournament:
         self.games.append(game)
 
         return game
+
+    def odds(self, game: Game) -> float:
+        """odds of white winning"""
+        return elo_odds(self.get_player(game.black).elo, self.get_player(game.white).elo)
