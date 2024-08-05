@@ -1,5 +1,7 @@
 from random import shuffle
 
+import cvxpy as cp
+import numpy as np
 import pandas as pd
 from gspread_pandas import Spread
 from attrs import define, field
@@ -7,7 +9,7 @@ from attrs import define, field
 from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.player import Player
-from tournament.utils import PlayerSheetHeader, expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
+from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
 
 
 @define
@@ -19,7 +21,10 @@ class Tournament:
     initial_elo: int = field(default=1500)
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
-    next_round: int = field(default=None, init=False)
+
+    @property
+    def next_round(self):
+        return self.games[-1].round_num + 1
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
@@ -41,6 +46,10 @@ class Tournament:
         for name, series in players_df.iterrows():
             self.players.append(Player.from_series(series, self.initial_elo))
 
+        # add bye player if odd
+        if len(self.players) % 2 != 0:
+            self.players.append(Player.bye_player())
+
     def _instantiate_game_list(self):
         """instantiate list of Games from Google spreadsheet"""
         self.games = []
@@ -49,7 +58,6 @@ class Tournament:
 
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
-            self.next_round = round_num + 1
 
     def _update_players(self):
         """update player elo based on historical record"""
@@ -68,10 +76,14 @@ class Tournament:
 
     def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
+
+        # sort by score and then elo
+        self.players = sorted(self.players, key=lambda x: [x.score, x.elo], reverse=True)
+
         df = pd.DataFrame([player.to_dict() for player in self.players])
 
         self.spread.df_to_sheet(
-            df=df.sort_values(by=[PlayerSheetHeader.SCORE.value, PlayerSheetHeader.ELO.value], ascending=False),
+            df=df,
             index=False,
             sheet=self.leaderboard_sheet)
 
@@ -100,8 +112,8 @@ class Tournament:
 
         expires_at = expires_at_timestamp(days_until_expired)
 
-        if testing:
-            game_link = '<testing: url here>'
+        if testing or players[1].is_bye:
+            game_link = ''
         else:
             game_link = create_lichess_challenge(
                 round_num=round_num,
@@ -118,13 +130,83 @@ class Tournament:
             score_delta=players[0].score - players[1].score,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
-            outcome=Outcome.EXPIRED if players[1].is_bye else Outcome.PENDING,
+            outcome=Outcome.PENDING,
             expires=timestamp_to_datetime(expires_at))
 
         # add game to tournament
         self.games.append(game)
 
         return game
+
+    def get_pairings(self, rematch_cost: float = 1.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
+                     solver=cp.GLPK_MI) -> list[list[Player]]:
+        """determine optimal player pairing to minimize cost function"""
+        n = len(self.players)
+
+        # Binary variables for pairing
+        x = cp.Variable((n, n), boolean=True)
+
+        # Cost matrix
+        cost_matrix = np.zeros((n, n))
+        for i in range(n):
+            for j in range(i + 1, n):
+                score_delta = np.abs(self.players[i].score - self.players[j].score)
+                rematch_penalty = rematch_cost * self.players[i].match_count(self.players[j].name)
+                federation_penalty = within_fed_cost * float(
+                    self.players[i].federation == self.players[j].federation)
+                elo_difference = elo_cost * np.abs(self.players[i].elo - self.players[j].elo)
+
+                cost = score_delta + rematch_penalty + federation_penalty + elo_difference
+                cost_matrix[i, j] = cost
+                cost_matrix[j, i] = cost  # symmetry
+
+        # Objective function
+        objective = cp.Minimize(cp.sum(cp.multiply(cost_matrix, x)))
+
+        # Constraints
+        constraints = []
+
+        # Each player should be paired with exactly one other player
+        for i in range(n):
+            constraints.append(cp.sum(x[i, :]) == 1)
+            constraints.append(cp.sum(x[:, i]) == 1)
+
+        # No player should be paired with themselves
+        for i in range(n):
+            constraints.append(x[i, i] == 0)
+
+        # Symmetry constraint (implicitly handled by the cost matrix symmetry)
+
+        # Solve the problem
+        problem = cp.Problem(objective, constraints)
+        problem.solve(solver=solver)
+
+        # Get the optimal pairing
+        pairing = np.array(x.value, dtype=int)
+
+        # extract player matches from pairing matrix
+        player_pairs = []
+        matched_players = set()
+
+        for i in range(n):
+            if i not in matched_players:
+                j = np.argmax(pairing[i])
+                player_pairs.append([self.players[i], self.players[j]])
+
+                matched_players.update([i, j])
+
+        return player_pairs
+
+    def create_next_round(self, lichess_api_token: str, **kwargs):
+        """create games for next round"""
+        round_num = self.next_round
+        player_pairs = self.get_pairings()
+        for players in player_pairs:
+            self.create_game(
+                round_num=round_num,
+                players=players,
+                lichess_api_token=lichess_api_token,
+                **kwargs)
 
     def white_odds(self, game: Game) -> float:
         """odds of white winning"""

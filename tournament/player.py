@@ -2,7 +2,6 @@ from typing import Optional
 
 from attrs import define, field
 import pandas as pd
-import numpy as np
 
 from tournament.game import Game
 from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER
@@ -28,9 +27,9 @@ class Player:
     def bye_player(cls):
         return cls(
             name=BYE_PLAYER,
-            handle=None,
-            federation=None,
-            elo=-np.inf)
+            handle=BYE_PLAYER,
+            federation=BYE_PLAYER,
+            elo=0)
 
     @property
     def is_bye(self) -> bool:
