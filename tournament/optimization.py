@@ -66,3 +66,5 @@ def player_pairs_from_matrix(pairing_matrix: np.array, players: list[Player]):
             player_pairs.append([players[i], players[j]])
 
             matched_players.update([i, j])
+
+    return player_pairs

@@ -157,7 +157,7 @@ class Tournament:
     def create_next_round(self, lichess_api_token: str, **kwargs):
         """create games for next round"""
         round_num = self.next_round
-        player_pairs = self.get_pairings()
+        player_pairs = self.get_pairings(**kwargs)
 
         for players in player_pairs:
             self.create_game(
