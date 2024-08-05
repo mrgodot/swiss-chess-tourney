@@ -6,7 +6,7 @@ import pandas as pd
 
 from tournament.lichess import create_lichess_challenge
 from tournament.player import Player
-from tournament.utils import Outcome, expires_at_timestamp, timestamp_to_datetime, GamesSheetHeader
+from tournament.utils import Outcome, expires_at_timestamp, timestamp_to_datetime, GamesSheetHeader, BYE_PLAYER
 
 
 @define
@@ -67,7 +67,7 @@ class Game:
 
     @property
     def bye(self):
-        return self.black == Player.bye_player().name
+        return self.black == BYE_PLAYER
 
     def to_dict(self) -> dict:
         return {
@@ -78,8 +78,7 @@ class Game:
             GamesSheetHeader.GAMES_PLAYED.value: self.games_played,
             GamesSheetHeader.MATCH_LINK.value: self.match_link,
             GamesSheetHeader.OUTCOME.value: self.outcome.value,
-            GamesSheetHeader.EXPIRES: self.expires,
-        }
+            GamesSheetHeader.EXPIRES: self.expires}
 
     def get_points(self, player: str) -> float:
         if self.outcome == Outcome.DRAW:

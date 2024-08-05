@@ -5,6 +5,7 @@ import pytz
 
 
 MILLISECONDS_PER_SECOND = 1000
+BYE_PLAYER = 'bye'
 
 
 class Outcome(Enum):

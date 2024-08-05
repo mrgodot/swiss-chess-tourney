@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 from tournament.game import Game
-from tournament.utils import Outcome, PlayerSheetHeader
+from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER
 
 
 @define
@@ -27,14 +27,14 @@ class Player:
     @classmethod
     def bye_player(cls):
         return cls(
-            name='bye',
+            name=BYE_PLAYER,
             handle=None,
             federation=None,
             elo=-np.inf)
 
     @property
     def is_bye(self) -> bool:
-        return self.name == 'bye'
+        return self.name == BYE_PLAYER
 
     @property
     def byes(self) -> int:
