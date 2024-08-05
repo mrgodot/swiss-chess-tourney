@@ -2,8 +2,10 @@ import numpy as np
 
 import cvxpy as cp
 
+from tournament.player import Player
 
-def round_pairings(players: list, rematch_cost: float, within_fed_cost: float, elo_cost: float,
+
+def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: float, elo_cost: float,
                    solver=cp.GLPK_MI, **kwargs) -> list:
 
     n = len(players)
@@ -14,7 +16,7 @@ def round_pairings(players: list, rematch_cost: float, within_fed_cost: float, e
     # Cost matrix
     cost_matrix = np.zeros((n, n))
     for i in range(n):
-        for j in range( i +1, n):
+        for j in range(i + 1, n):
 
             score_delta = np.abs(players[i].score - players[j].score)
             rematch_penalty = rematch_cost * players[i].match_count(players[j].name)
@@ -48,18 +50,19 @@ def round_pairings(players: list, rematch_cost: float, within_fed_cost: float, e
     problem.solve(solver=solver)
 
     # Get the optimal pairing
-    pairing = np.array(x.value, dtype=int)
+    pairing_matrix = np.array(x.value, dtype=int)
 
-    # extra t player matches from pairing matrix
+    return pairing_matrix
+
+
+def player_pairs_from_matrix(pairing_matrix: np.array, players: list[Player]):
+    # extract player matches from pairing matrix
     player_pairs = []
     matched_players = set()
 
-    for i in range(n):
+    for i in range(len(players)):
         if i not in matched_players:
-
-            j = np.argmax(pairing[i])
+            j = np.argmax(pairing_matrix[i])
             player_pairs.append([players[i], players[j]])
 
             matched_players.update([i, j])
-
-    return player_pairs

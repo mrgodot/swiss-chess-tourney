@@ -8,7 +8,7 @@ from attrs import define, field
 
 from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
-from tournament.optimization import round_pairings
+from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
 
@@ -145,26 +145,20 @@ class Tournament:
     def get_pairings(self, rematch_cost: float = 1.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
                      **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
-        n = len(self.players)
-        pairing_matrix = round_pairings(self.players, rematch_cost, within_fed_cost, elo_cost, **kwargs)
+        pairing_matrix = round_pairings(
+            players=self.players,
+            rematch_cost=rematch_cost,
+            within_fed_cost=within_fed_cost,
+            elo_cost=elo_cost,
+            **kwargs)
 
-        # extract player matches from pairing matrix
-        player_pairs = []
-        matched_players = set()
-
-        for i in range(n):
-            if i not in matched_players:
-                j = np.argmax(pairing_matrix[i])
-                player_pairs.append([self.players[i], self.players[j]])
-
-                matched_players.update([i, j])
-
-        return player_pairs
+        return player_pairs_from_matrix(pairing_matrix)
 
     def create_next_round(self, lichess_api_token: str, **kwargs):
         """create games for next round"""
         round_num = self.next_round
         player_pairs = self.get_pairings()
+
         for players in player_pairs:
             self.create_game(
                 round_num=round_num,
