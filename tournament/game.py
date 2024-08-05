@@ -14,8 +14,8 @@ class Game:
     score_delta: float
     games_played: int
     match_link: str  # lichess url
+    outcome: Outcome
     expires: datetime
-    outcome: Outcome = field(default=Outcome.PENDING)
 
     @classmethod
     def from_series(cls, series: pd.Series):
@@ -42,7 +42,7 @@ class Game:
             GamesSheetHeader.GAMES_PLAYED.value: self.games_played,
             GamesSheetHeader.MATCH_LINK.value: self.match_link,
             GamesSheetHeader.OUTCOME.value: self.outcome.value,
-            GamesSheetHeader.EXPIRES: self.expires}
+            GamesSheetHeader.EXPIRES.value: self.expires}
 
     def get_points(self, player: str) -> float:
         if self.outcome == Outcome.DRAW:
