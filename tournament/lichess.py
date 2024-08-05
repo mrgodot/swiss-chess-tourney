@@ -12,8 +12,9 @@ from tournament.utils import timestamp_to_datetime
 LICHESS_CHALLENGE = "https://lichess.org/api/challenge/open"
 LICHESS_GAME_EXPORT = "https://lichess.org/game/export/"
 
+
 def create_lichess_challenge(
-        round_num: str,
+        round_num: int,
         white_player: Player,
         black_player: Player,
         clock_secs: int,

@@ -90,7 +90,7 @@ class Tournament:
         self._update_players()
         self.update_leaderboard_sheet()
 
-    def create_game(self, round_num: str, players: tuple[Player], lichess_api_token: str,
+    def create_game(self, round_num: int, players: tuple[Player], lichess_api_token: str,
                     days_until_expired: int = 7, testing: bool = False, **kwargs) -> Game:
         """create a Game between the two `players`. Use kwargs to pass additional params to `create_lichess_challenge"""
 
@@ -114,13 +114,13 @@ class Tournament:
                 **kwargs)
 
         game = Game(
-            round_num=int(round_num),
+            round_num=round_num,
             white=player_pair[0].name,
             black=player_pair[1].name,
             score_delta=player_pair[0].score - player_pair[1].score,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
-            outcome=Outcome.WHITE if players[1].is_bye else None,
+            outcome=Outcome.WHITE if players[1].is_bye else Outcome.PENDING,
             expires=expires_at_datetime)
 
         # add game to tournament
