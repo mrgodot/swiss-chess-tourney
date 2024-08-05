@@ -26,8 +26,8 @@ class Game:
             score_delta=series[GamesSheetHeader.SCORE_DELTA.value],
             games_played=series[GamesSheetHeader.GAMES_PLAYED.value],
             match_link=series[GamesSheetHeader.MATCH_LINK.value],
-            outcome=series[GamesSheetHeader.OUTCOME.value],
-            expires=series[GamesSheetHeader.EXPIRES.value])
+            outcome=Outcome(series[GamesSheetHeader.OUTCOME.value]),
+            expires=pd.to_datetime(series[GamesSheetHeader.EXPIRES.value]))
 
     @property
     def bye(self):
