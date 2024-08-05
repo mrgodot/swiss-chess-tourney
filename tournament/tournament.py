@@ -4,6 +4,7 @@ from attrs import define, field
 
 from tournament.game import Game
 from tournament.player import Player
+from tournament.utils import PlayerSheetHeader
 
 
 @define
@@ -41,7 +42,7 @@ class Tournament:
         """instantiate list of Games from Google spreadsheet"""
         self.games = []
 
-        games_df = self.spread.sheet_to_df(sheet=self.games_sheet)
+        games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0)
 
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
@@ -62,17 +63,26 @@ class Tournament:
             white_player.update(game, black_elo)
             black_player.update(game, white_elo)
 
-    def _update_leaderboard(self):
+    def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
         df = pd.DataFrame([player.to_dict() for player in self.players])
 
         self.spread.df_to_sheet(
-            sheet=self.leaderboard_sheet,
-            df=df.sort_values(by=['Score', 'Elo'], ascending=False),
-            index=False)
+            df=df.sort_values(by=[PlayerSheetHeader.SCORE.value, PlayerSheetHeader.ELO.value], ascending=False),
+            index=False,
+            sheet=self.leaderboard_sheet)
+
+    def update_games_sheet(self):
+        """update and sort leaderboard spreadsheet"""
+        df = pd.DataFrame([game.to_dict() for game in self.games])
+
+        self.spread.df_to_sheet(
+            df,
+            index=False,
+            sheet=self.games_sheet)
 
     def update_tournament_state(self):
         self._instantiate_player_list()
         self._instantiate_game_list()
         self._update_players()
-        self._update_leaderboard()
+        self.update_leaderboard_sheet()
