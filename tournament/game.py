@@ -19,6 +19,7 @@ class Game:
 
     @classmethod
     def from_series(cls, series: pd.Series):
+        """convert series of strings into Game object"""
         return cls(
             round_num=series[GamesSheetHeader.ROUND.value],
             white=series[GamesSheetHeader.WHITE.value],

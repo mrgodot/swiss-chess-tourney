@@ -126,6 +126,6 @@ class Tournament:
 
         return game
 
-    def odds(self, game: Game) -> float:
+    def white_odds(self, game: Game) -> float:
         """odds of white winning"""
-        return elo_odds(self.get_player(game.black).elo, self.get_player(game.white).elo)
+        return elo_odds(self.get_player(game.white).elo, self.get_player(game.black).elo)
