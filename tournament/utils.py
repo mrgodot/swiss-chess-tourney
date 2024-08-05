@@ -8,10 +8,10 @@ MILLISECONDS_PER_SECOND = 1000
 
 
 class Outcome(Enum):
-    white='White'
-    black='Black'
-    draw='Draw'
-    expired='Expired'
+    white = 'White'
+    black = 'Black'
+    draw = 'Draw'
+    expired = 'Expired'
 
 
 def elo_odds(white_elo: float, black_elo: float) -> float:
@@ -34,5 +34,5 @@ def expires_at_timestamp(days_until_expired) -> int:
 
 
 def timestamp_to_datetime(timestamp) -> datetime:
-    "convert UTC timestamp to datetime"
+    """convert UTC timestamp to datetime"""
     return datetime.fromtimestamp(timestamp / MILLISECONDS_PER_SECOND)

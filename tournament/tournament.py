@@ -16,6 +16,7 @@ class Tournament:
     spread: Spread
     leaderboard_sheet: str
     games_sheet: str
+    initial_elo: int = field(default=1500)
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
     next_round: int = field(default=None, init=False)
@@ -38,7 +39,7 @@ class Tournament:
         players_df = self.spread.sheet_to_df(sheet=self.leaderboard_sheet)
 
         for name, series in players_df.iterrows():
-            self.players.append(Player.from_series(series))
+            self.players.append(Player.from_series(series, self.initial_elo))
 
     def _instantiate_game_list(self):
         """instantiate list of Games from Google spreadsheet"""

@@ -11,17 +11,18 @@ from tournament.utils import Outcome
 @define
 class Player:
     name: str
-    handle: Optional[str] = field(default=None)
-    federation: Optional[str] = field(default=None)
-    elo: float = field(default=1500)
+    handle: Optional[str]
+    federation: Optional[str]
+    elo: float
     games: list[Game] = field(factory=list, init=False)
 
     @classmethod
-    def from_series(cls, series: pd.Series):
+    def from_series(cls, series: pd.Series, initial_elo: float):
         return cls(
             name=str(series.name),
             handle=series['Lichess'],
-            federation=series['Federation'])
+            federation=series['Federation'],
+            elo=initial_elo)
 
     @classmethod
     def bye_player(cls):
