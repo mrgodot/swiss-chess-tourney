@@ -4,10 +4,7 @@ from attrs import define, field
 import pandas as pd
 
 from tournament.game import Game
-from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER
-
-
-BYE_PLAYER_ELO = 0
+from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO
 
 
 @define

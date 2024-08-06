@@ -6,6 +6,7 @@ import pytz
 
 MILLISECONDS_PER_SECOND = 1000
 BYE_PLAYER = 'bye'
+BYE_PLAYER_ELO = 0
 
 
 class Outcome(Enum):

@@ -120,13 +120,8 @@ class Tournament:
         is_bye = any(player.is_bye for player in players)
 
         if is_bye:
-            for player in players:
-                # find real player
-                if not player.is_bye:
-                    break
-
-                # ensure bye player as black
-                players = [player, Player.bye_player()]
+            # ensure bye player is black
+            players = sorted(players, key=lambda x: x.is_bye)
         else:
             # randomize sides
             shuffle(players)
@@ -148,7 +143,7 @@ class Tournament:
             round_num=round_num,
             white=players[0].name,
             black=players[1].name,
-            score_delta=players[0].score - players[1].score,
+            score_delta=players[0].score - players[1].score if not is_bye else 0,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
             outcome=Outcome.PENDING,

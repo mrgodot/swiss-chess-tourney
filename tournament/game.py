@@ -9,13 +9,18 @@ from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
 @define
 class Game:
     round_num: int = field(converter=int)
-    white: str  # player name
+    white: str = field()  # player name
     black: str  # player name
     score_delta: float
     games_played: int
     match_link: str  # lichess url
     outcome: Outcome
     expires: datetime
+
+    @white.validator
+    def not_bye(self, attribute, value):
+        if value == 'bye':
+            raise ValueError('Bye player must be black')
 
     @classmethod
     def from_series(cls, series: pd.Series):
