@@ -9,11 +9,16 @@ from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_
 
 @define
 class Player:
-    name: str
+    name: str = field()
     handle: Optional[str]
     federation: Optional[str]
     elo: float
     games: list[Game] = field(factory=list, init=False)
+
+    @name.validator
+    def reserve_bye(self, attribute, value):
+        if value == BYE_PLAYER:
+            raise ValueError(f'{BYE_PLAYER} is a reserved player name')
 
     @classmethod
     def from_series(cls, series: pd.Series, initial_elo: float):

@@ -104,7 +104,7 @@ class Tournament:
         # sort df by round, byes on bottom, highest rated matches first
         df['rank'] = [(
             game.round_num, game.bye,
-            -sum_value(game, 'score'), -sum_value(game, 'elo')) 
+            -sum_value(game, 'score'), -sum_value(game, 'elo'))
             for game in self.games]
 
         df = df.sort_values('rank')
