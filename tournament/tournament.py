@@ -67,6 +67,13 @@ class Tournament:
             if game.outcome != Outcome.PENDING:
                 self.update_players(game, **kwargs)
 
+    def reset_tournament_state(self):
+        """reset tournament to the start of round 1"""
+        self.games = []
+        for player in self.players:
+            player.games = []
+            player.elo = self.initial_elo
+
     def update_players(self, game: Game, **kwargs):
         """add game to players and update elo"""
         white_player = self.get_player(game.white)
