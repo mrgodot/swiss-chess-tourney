@@ -77,4 +77,4 @@ class Player:
         self.elo = initial_elo if not self.is_bye else BYE_PLAYER_ELO
 
     def __repr__(self) -> str:
-        return f"Player(name='{self.name}', handle={self.handle}, federation={self.federation}, elo={self.elo})"
+        return f"Player(name='{self.name}', handle='{self.handle}', federation='{self.federation}', elo={self.elo})"

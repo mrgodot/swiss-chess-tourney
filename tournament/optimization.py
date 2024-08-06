@@ -10,10 +10,10 @@ def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: 
 
     n = len(players)
 
-    # Binary variables for pairing
+    # pairing matrix
     x = cp.Variable((n, n), boolean=True)
 
-    # Cost matrix
+    # cost matrix
     cost_matrix = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
@@ -28,24 +28,25 @@ def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: 
             cost_matrix[i, j] = cost
             cost_matrix[j, i] = cost  # symmetry
 
-    # Objective function
+    # objective function
     objective = cp.Minimize(cp.sum(cp.multiply(cost_matrix, x)))
 
-    # Constraints
+    # constraints
     constraints = []
 
-    # Each player should be paired with exactly one other player
     for i in range(n):
+        # each player should be paired with exactly one other player
         constraints.append(cp.sum(x[i, :]) == 1)
         constraints.append(cp.sum(x[:, i]) == 1)
 
-    # No player should be paired with themselves
-    for i in range(n):
+        # no player should be paired with themselves
         constraints.append(x[i, i] == 0)
 
-    # Symmetry constraint (implicitly handled by the cost matrix symmetry)
+        # symmetry constraint: a vs b is the same as b vs a
+        for j in range(i + 1, n):
+            constraints.append(x[i, j] == x[j, i])
 
-    # Solve the problem
+    # minimize objective function subject to constraints
     problem = cp.Problem(objective, constraints)
     problem.solve(solver=solver)
 
