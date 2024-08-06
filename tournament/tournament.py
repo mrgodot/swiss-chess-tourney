@@ -71,9 +71,7 @@ class Tournament:
         """reset tournament to the start of round 1"""
         self.games = []
         for player in self.players:
-            player.games = []
-            if not player.is_bye:
-                player.elo = self.initial_elo
+            player.reset(self.initial_elo)
 
     def update_players(self, game: Game, **kwargs):
         """add game to players and update elo"""

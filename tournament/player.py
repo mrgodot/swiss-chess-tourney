@@ -7,6 +7,9 @@ from tournament.game import Game
 from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER
 
 
+BYE_PLAYER_ELO = 0
+
+
 @define
 class Player:
     name: str
@@ -29,7 +32,7 @@ class Player:
             name=BYE_PLAYER,
             handle=BYE_PLAYER,
             federation=BYE_PLAYER,
-            elo=0)
+            elo=BYE_PLAYER_ELO)
 
     @property
     def is_bye(self) -> bool:
@@ -71,6 +74,10 @@ class Player:
                 opponent_elo=opponent_elo,
                 points=game.get_points(self.name),
                 **kwargs)
+
+    def reset(self, initial_elo: float):
+        self.games = []
+        self.elo = initial_elo if not self.is_bye else BYE_PLAYER_ELO
 
     def __repr__(self) -> str:
         return f"Player(name='{self.name}', handle={self.handle}, federation={self.federation}, elo={self.elo})"
