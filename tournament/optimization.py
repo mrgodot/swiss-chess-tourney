@@ -6,7 +6,7 @@ from tournament.player import Player
 
 
 def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: float, elo_cost: float,
-                   solver=cp.GLPK_MI, **kwargs) -> list:
+                   solver=cp.GLPK_MI, **kwargs) -> np.array:
 
     n = len(players)
 
