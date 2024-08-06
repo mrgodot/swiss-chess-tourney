@@ -1,7 +1,5 @@
 from random import shuffle
 
-import cvxpy as cp
-import numpy as np
 import pandas as pd
 from gspread_pandas import Spread
 from attrs import define, field
@@ -63,13 +61,13 @@ class Tournament:
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
 
-    def _process_games(self):
+    def _process_games(self, **kwargs):
         """add games to players and update elo"""
         for game in self.games:
             if game.outcome != Outcome.PENDING:
-                self.update_players(game)
+                self.update_players(game, **kwargs)
 
-    def update_players(self, game: Game):
+    def update_players(self, game: Game, **kwargs):
         """add game to players and update elo"""
         white_player = self.get_player(game.white)
         black_player = self.get_player(game.black)
@@ -77,8 +75,8 @@ class Tournament:
         white_elo = white_player.elo
         black_elo = black_player.elo
 
-        white_player.update(game, black_elo)
-        black_player.update(game, white_elo)
+        white_player.update(game, black_elo, **kwargs)
+        black_player.update(game, white_elo, **kwargs)
 
     def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
