@@ -30,9 +30,6 @@ class Tournament:
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
-        if name == 'bye':
-            return Player.bye_player()
-
         for player in self.players:
             if player.name == name:
                 return player
