@@ -8,7 +8,7 @@ from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
-from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds
+from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds, GamesSheetHeader
 
 
 @define
@@ -98,8 +98,19 @@ class Tournament:
         """update and sort leaderboard spreadsheet"""
         df = pd.DataFrame([game.to_dict() for game in self.games])
 
+        def sum_value(game: Game, value: str):
+            return sum([getattr(self.get_player(player), value) for player in [game.white, game.black]])
+
+        # sort df by round, byes on bottom, highest rated matches first
+        df['rank'] = [(
+            game.round_num, game.bye,
+            -sum_value(game, 'score'), -sum_value(game, 'elo')) 
+            for game in self.games]
+
+        df = df.sort_values('rank')
+
         self.spread.df_to_sheet(
-            df,
+            df.drop(columns='rank'),
             index=False,
             sheet=self.games_sheet)
 
@@ -151,7 +162,7 @@ class Tournament:
 
         return game
 
-    def get_pairings(self, rematch_cost: float = 1.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
+    def get_pairings(self, rematch_cost: float = 2.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
                      **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
         pairing_matrix = round_pairings(

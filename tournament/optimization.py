@@ -5,19 +5,15 @@ import cvxpy as cp
 from tournament.player import Player
 
 
-def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: float, elo_cost: float,
-                   solver=cp.GLPK_MI, **kwargs) -> np.array:
+def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed_cost: float, elo_cost: float,
+                          **kwargs) -> np.array:
+    """"pairwise cost function for each pairwise player pairing"""
 
     n = len(players)
 
-    # pairing matrix
-    x = cp.Variable((n, n), boolean=True)
-
-    # cost matrix
     cost_matrix = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
-
             score_delta = np.abs(players[i].score - players[j].score)
             rematch_penalty = rematch_cost * players[i].match_count(players[j].name)
             federation_penalty = within_fed_cost * float(
@@ -27,6 +23,19 @@ def round_pairings(players: list[Player], rematch_cost: float, within_fed_cost: 
             cost = score_delta + rematch_penalty + federation_penalty + elo_difference
             cost_matrix[i, j] = cost
             cost_matrix[j, i] = cost  # symmetry
+
+    return cost_matrix
+
+
+def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.array:
+    """use mixed integer linear programming to solve for optimal round pairings"""
+
+    n = len(players)
+
+    cost_matrix = calculate_cost_matrix(players, **kwargs)
+
+    # pairing matrix
+    x = cp.Variable((n, n), boolean=True)
 
     # objective function
     objective = cp.Minimize(cp.sum(cp.multiply(cost_matrix, x)))
