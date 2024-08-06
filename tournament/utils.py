@@ -40,7 +40,7 @@ class GamesSheetHeader(Enum):
     EXPIRES = 'Expires'
 
 
-def elo_odds(white_elo: float, black_elo: float) -> float:
+def white_odds(white_elo: float, black_elo: float) -> float:
     """return odds that white wins"""
     return 1 / (1 + 10 ** (-(white_elo - black_elo) / 400))
 

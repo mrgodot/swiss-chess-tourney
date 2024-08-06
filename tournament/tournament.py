@@ -10,7 +10,7 @@ from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
-from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, elo_odds
+from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds
 
 
 @define
@@ -63,20 +63,22 @@ class Tournament:
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
 
-    def _update_players(self):
-        """update player elo based on historical record"""
+    def _process_games(self):
+        """add games to players and update elo"""
         for game in self.games:
-            if game.outcome is None:
-                continue
+            if game.outcome != Outcome.PENDING:
+                self.update_players(game)
 
-            white_player = self.get_player(game.white)
-            black_player = self.get_player(game.black)
+    def update_players(self, game: Game):
+        """add game to players and update elo"""
+        white_player = self.get_player(game.white)
+        black_player = self.get_player(game.black)
 
-            white_elo = white_player.elo
-            black_elo = black_player.elo
+        white_elo = white_player.elo
+        black_elo = black_player.elo
 
-            white_player.update(game, black_elo)
-            black_player.update(game, white_elo)
+        white_player.update(game, black_elo)
+        black_player.update(game, white_elo)
 
     def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
@@ -103,7 +105,7 @@ class Tournament:
     def update_tournament_state(self):
         self._instantiate_player_list()
         self._instantiate_game_list()
-        self._update_players()
+        self._process_games()
         self.update_leaderboard_sheet()
 
     def create_game(self, round_num: int, players: list[Player], lichess_api_token: str,
@@ -168,4 +170,4 @@ class Tournament:
 
     def white_odds(self, game: Game) -> float:
         """odds of white winning"""
-        return elo_odds(self.get_player(game.white).elo, self.get_player(game.black).elo)
+        return white_odds(self.get_player(game.white).elo, self.get_player(game.black).elo)

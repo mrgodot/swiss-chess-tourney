@@ -63,12 +63,14 @@ class Player:
         expected_score = 1 / (1 + 10 ** ((opponent_elo - self.elo) / 400))
         self.elo += k_factor * (points - expected_score)
 
-    def update(self, game: Game, opponent_elo: float):
+    def update(self, game: Game, opponent_elo: float, **kwargs):
+        """add game to player list and update player elo based on `game.outcome`. pass k_factor to _update_elo."""
         self.games.append(game)
         if game.outcome != Outcome.EXPIRED and not game.bye:
             self._update_elo(
                 opponent_elo=opponent_elo,
-                points=game.get_points(self.name))
+                points=game.get_points(self.name),
+                **kwargs)
 
     def __repr__(self) -> str:
         return f"Player(name='{self.name}', handle={self.handle}, federation={self.federation}, elo={self.elo})"
