@@ -67,7 +67,7 @@ class Tournament:
             if game.outcome != Outcome.PENDING:
                 self.update_players(game, **kwargs)
 
-    def reset_tournament_state(self):
+    def reset(self):
         """reset tournament to the start of round 1"""
         self.games = []
         for player in self.players:
@@ -117,13 +117,24 @@ class Tournament:
                     days_until_expired: int = 7, testing: bool = False, **kwargs) -> Game:
         """create a Game between the two `players`. Use kwargs to pass additional params to `create_lichess_challenge"""
 
-        # randomize side if not bye
-        if not players[1].is_bye:
+        # check for bye
+        is_bye = any(player.is_bye for player in players)
+
+        if is_bye:
+            for player in players:
+                # find real player
+                if not player.is_bye:
+                    break
+
+                # ensure bye player as black
+                players = [player, Player.bye_player()]
+        else:
+            # randomize sides
             shuffle(players)
 
         expires_at = expires_at_timestamp(days_until_expired)
 
-        if testing or players[1].is_bye:
+        if testing or is_bye:
             game_link = ''
         else:
             game_link = create_lichess_challenge(
