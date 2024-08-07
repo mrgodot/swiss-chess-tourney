@@ -15,18 +15,13 @@ class Player:
     elo: float
     games: list[Game] = field(factory=list, init=False)
 
-    @name.validator
-    def reserve_bye(self, attribute, value):
-        if value == BYE_PLAYER:
-            raise ValueError(f'{BYE_PLAYER} is a reserved player name')
-
     @classmethod
     def from_series(cls, series: pd.Series, initial_elo: float):
         return cls(
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
             federation=series[PlayerSheetHeader.FEDERATION.value],
-            elo=initial_elo)
+            elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO)
 
     @classmethod
     def bye_player(cls):
