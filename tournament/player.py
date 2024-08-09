@@ -9,7 +9,7 @@ from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_
 
 @define
 class Player:
-    name: str = field()
+    name: str
     handle: Optional[str]
     federation: Optional[str]
     elo: float

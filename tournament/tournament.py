@@ -8,7 +8,7 @@ from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
-from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds, GamesSheetHeader
+from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds
 
 
 @define
@@ -84,7 +84,7 @@ class Tournament:
     def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
 
-        # sort by score and then elo
+        # sort players by score and then elo
         self.players = sorted(self.players, key=lambda x: [x.score, x.elo], reverse=True)
 
         df = pd.DataFrame([player.to_dict() for player in self.players])
