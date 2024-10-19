@@ -11,13 +11,23 @@ from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds
 
 
+SECONDS_PER_MIN = 60
+
+
 @define
 class Tournament:
+    """
+    Container for all tournament parameters and objects.
+    After instantiation, load tournament state by calling tournament.update_tournament_state()
+    Create a new round using tournament.create_next_round()
+    """
     name: str
     spread: Spread
     leaderboard_sheet: str
     games_sheet: str
     initial_elo: int = field(default=1500)
+    clock_secs: int = field(default=SECONDS_PER_MIN * 10)
+    increment_secs: int = field(default=5)
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
 
@@ -184,6 +194,8 @@ class Tournament:
                 round_num=round_num,
                 players=players,
                 lichess_api_token=lichess_api_token,
+                clock_secs=self.clock_secs,
+                increment_secs=self.increment_secs,
                 **kwargs)
 
     def white_odds(self, game: Game) -> float:
