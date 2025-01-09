@@ -14,6 +14,8 @@ def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed
     cost_matrix = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
+            # difference in experience
+            experience_delta = np.abs(players[i].animal.value - players[j].animal.value)
             # difference in player scores
             score_delta = np.abs(players[i].score - players[j].score)
             # penalize rematches
@@ -25,7 +27,7 @@ def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed
             elo_difference = elo_cost * np.abs(players[i].elo - players[j].elo)
 
             # sum up costs
-            cost = score_delta + rematch_penalty + federation_penalty + elo_difference
+            cost = experience_delta + score_delta + rematch_penalty + federation_penalty + elo_difference
             cost_matrix[i, j] = cost
             cost_matrix[j, i] = cost  # symmetry
 

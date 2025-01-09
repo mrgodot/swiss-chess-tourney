@@ -1,17 +1,16 @@
-from typing import Optional
-
 from attrs import define, field
 import pandas as pd
 
 from tournament.game import Game
-from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO
+from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO, AnimalClass
 
 
 @define
 class Player:
     name: str
-    handle: Optional[str]
-    federation: Optional[str]
+    handle: str
+    federation: str
+    animal: AnimalClass
     elo: float
     games: list[Game] = field(factory=list, init=False)
 
@@ -21,6 +20,7 @@ class Player:
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
             federation=series[PlayerSheetHeader.FEDERATION.value],
+            animal=AnimalClass(series[PlayerSheetHeader.EXPERIENCE.value].upper()),
             elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO)
 
     @classmethod
@@ -29,6 +29,7 @@ class Player:
             name=BYE_PLAYER,
             handle=BYE_PLAYER,
             federation=BYE_PLAYER,
+            animal=AnimalClass.KOALA,
             elo=BYE_PLAYER_ELO)
 
     @property
@@ -52,6 +53,7 @@ class Player:
             PlayerSheetHeader.PLAYER.value: self.name,
             PlayerSheetHeader.HANDLE.value: self.handle,
             PlayerSheetHeader.FEDERATION.value: self.federation,
+            PlayerSheetHeader.EXPERIENCE.value: self.animal.name.capitalize(),
             PlayerSheetHeader.ELO.value: self.elo,
             PlayerSheetHeader.SCORE.value: self.score}
 

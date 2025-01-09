@@ -9,6 +9,13 @@ BYE_PLAYER = 'bye'
 BYE_PLAYER_ELO = 0
 
 
+class AnimalClass(Enum):
+    """self-reported experience level"""
+    KOALA = -1
+    DEER = 0
+    COUGAR = 1
+
+
 class Outcome(Enum):
     PENDING = ''
     WHITE = 'White'
@@ -26,6 +33,7 @@ class PlayerSheetHeader(Enum):
     PLAYER = 'Player'
     HANDLE = 'Lichess Handle'
     FEDERATION = 'Federation'
+    EXPERIENCE = 'Experience'
     ELO = 'Elo'
     SCORE = 'Score'
 
