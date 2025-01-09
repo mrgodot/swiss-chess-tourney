@@ -20,7 +20,7 @@ class Player:
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
             federation=series[PlayerSheetHeader.FEDERATION.value],
-            animal=AnimalClass(series[PlayerSheetHeader.EXPERIENCE.value].upper()),
+            animal=AnimalClass[series[PlayerSheetHeader.EXPERIENCE.value].upper()],
             elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO)
 
     @classmethod
