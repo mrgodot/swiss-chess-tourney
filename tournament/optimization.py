@@ -5,8 +5,8 @@ import cvxpy as cp
 from tournament.player import Player
 
 
-def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed_cost: float, elo_cost: float,
-                          **kwargs) -> np.array:
+def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed_cost: float,
+                          experience_cost: float, elo_cost: float, **kwargs) -> np.array:
     """"apply cost function to each pairwise player pairing returning a symmetric cost matrix"""
 
     n = len(players)
@@ -15,7 +15,7 @@ def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed
     for i in range(n):
         for j in range(i + 1, n):
             # difference in experience
-            experience_delta = np.abs(players[i].animal.value - players[j].animal.value)
+            experience_delta = experience_cost * np.abs(players[i].animal.value - players[j].animal.value)
             # difference in player scores
             score_delta = np.abs(players[i].score - players[j].score)
             # penalize rematches

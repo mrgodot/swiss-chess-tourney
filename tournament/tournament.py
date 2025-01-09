@@ -25,6 +25,11 @@ class Tournament:
     spread: Spread
     leaderboard_sheet: str
     games_sheet: str
+    # player pairing cost starts with abs score difference
+    rematch_cost: float = 2.5  # cost to play the same player again
+    within_fed_cost: float = 0.75  # cost to be paired within federation
+    experience_cost: float = 0.5  # early round sorting based on difference in experience
+    elo_cost: float = 0.0001  # tie-breaker based on abs elo difference
     initial_elo: int = field(default=1500)
     clock_secs: int = field(default=SECONDS_PER_MIN * 10)
     increment_secs: int = field(default=5)
@@ -172,14 +177,14 @@ class Tournament:
 
         return game
 
-    def get_pairings(self, rematch_cost: float = 2.5, within_fed_cost: float = 0.75, elo_cost: float = 0.0001,
-                     **kwargs) -> list[list[Player]]:
+    def get_pairings(self, **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
         pairing_matrix = round_pairings(
             players=self.players,
-            rematch_cost=rematch_cost,
-            within_fed_cost=within_fed_cost,
-            elo_cost=elo_cost,
+            rematch_cost=self.rematch_cost,
+            within_fed_cost=self.within_fed_cost,
+            experience_cost=self.experience_cost,
+            elo_cost=self.elo_cost,
             **kwargs)
 
         return player_pairs_from_matrix(pairing_matrix, self.players)
