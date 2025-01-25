@@ -12,7 +12,7 @@ BYE_PLAYER_ELO = 0
 class AnimalClass(Enum):
     """self-reported experience level"""
     KOALA = -1
-    MARMOT = 0
+    DEER = 0
     COUGAR = 1
 
 
