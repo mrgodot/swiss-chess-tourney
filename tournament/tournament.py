@@ -9,8 +9,7 @@ from tournament.game import Game
 from tournament.lichess import create_lichess_challenge
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
-from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds
-
+from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds, BYE_PLAYER
 
 SECONDS_PER_MIN = 60
 pd.set_option('future.no_silent_downcasting', True)
@@ -47,6 +46,9 @@ class Tournament:
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
+        if name == BYE_PLAYER:
+            return Player.bye_player()
+
         for player in self.players:
             if player.name == name:
                 return player
@@ -118,7 +120,7 @@ class Tournament:
         # sort df by round, byes on bottom, highest rated matches first
         df['rank'] = [(
             game.round_num, game.bye,
-            -sum_value(game, 'score'), -sum_value(game, 'elo'))
+            -sum_value(game, value='score'), -sum_value(game, value='elo'))
             for game in self.games]
 
         df = df.sort_values('rank')
