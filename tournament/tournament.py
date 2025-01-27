@@ -12,6 +12,7 @@ from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcom
 
 
 SECONDS_PER_MIN = 60
+pd.set_option('future.no_silent_downcasting', True)
 
 
 @define
@@ -65,6 +66,7 @@ class Tournament:
         self.games = []
 
         games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0)
+        games_df = games_df.replace("", np.nan).infer_objects()
 
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
@@ -209,7 +211,7 @@ class Tournament:
     def create_next_round(self, lichess_api_token: str, bye_player: str | None = None, **kwargs):
         """create games for next round"""
         round_num = self.next_round
-        player_pairs = self.get_pairings(**kwargs)
+        player_pairs = self.get_pairings(bye_player=bye_player, **kwargs)
 
         for players in player_pairs:
             self.create_game(
