@@ -183,11 +183,11 @@ class Tournament:
 
         return game
 
-    def get_pairings(self, bye_player: str | None, **kwargs) -> list[list[Player]]:
+    def get_pairings(self, bye_players: list[str] | None, **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
-        if bye_player is not None:
+        if bye_players is not None:
             # remove bye_player from player list
-            players = [player for player in self.players if player.name != bye_player]
+            players = [player for player in self.players if player.name not in bye_players]
         else:
             players = self.players
 
@@ -206,15 +206,20 @@ class Tournament:
         player_pairs = player_pairs_from_matrix(pairing_matrix, players)
 
         # if bye player was provided, pair them now
-        if bye_player is not None:
-            player_pairs.append([self.get_player(bye_player), Player.bye_player()])
+        if bye_players is not None:
+            for player in bye_players:
+                player_pairs.append([self.get_player(player), Player.bye_player()])
 
         return player_pairs
 
-    def create_next_round(self, lichess_api_token: str, bye_player: str | None = None, **kwargs):
+    def create_next_round(self, lichess_api_token: str, bye_players: str | list[str] | None = None, **kwargs):
         """create games for next round"""
         round_num = self.next_round
-        player_pairs = self.get_pairings(bye_player=bye_player, **kwargs)
+
+        if isinstance(bye_players, str):
+            bye_players = [bye_players]
+
+        player_pairs = self.get_pairings(bye_players=bye_players, **kwargs)
 
         for players in player_pairs:
             self.create_game(
