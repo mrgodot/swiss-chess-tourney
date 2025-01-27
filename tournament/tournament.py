@@ -60,10 +60,6 @@ class Tournament:
         for name, series in players_df.iterrows():
             self.players.append(Player.from_series(series, self.initial_elo))
 
-        # add bye player if odd
-        if len(self.players) % 2 != 0:
-            self.players.append(Player.bye_player())
-
     def _instantiate_game_list(self):
         """instantiate list of Games from Google spreadsheet"""
         self.games = []
@@ -76,7 +72,7 @@ class Tournament:
     def _process_games(self, **kwargs):
         """add games to players and update elo"""
         for game in self.games:
-            if game.outcome != Outcome.PENDING:
+            if game.outcome != Outcome.PENDING and not game.bye:
                 self.update_players(game, **kwargs)
 
     def reset(self):
@@ -130,13 +126,18 @@ class Tournament:
             sheet=self.games_sheet)
 
     def update_tournament_state(self):
+        print("instantiating player list")
         self._instantiate_player_list()
+        print("instantiating game list")
         self._instantiate_game_list()
+        print("processing games")
         self._process_games()
+        print("updating leaderboard")
         self.update_leaderboard_sheet()
 
     def create_game(self, round_num: int, players: list[Player], lichess_api_token: str,
-                    days_until_expired: int = 7, testing: bool = False, **kwargs) -> Game:
+                    random_sides: bool = True, days_until_expired: int = 7, testing: bool = False,
+                    **kwargs) -> Game:
         """create a Game between the two `players`. Use kwargs to pass additional params to `create_lichess_challenge"""
 
         # check for bye
@@ -145,7 +146,7 @@ class Tournament:
         if is_bye:
             # ensure bye player is black
             players = sorted(players, key=lambda x: x.is_bye)
-        else:
+        elif random_sides:
             # randomize sides
             shuffle(players)
 
@@ -177,19 +178,35 @@ class Tournament:
 
         return game
 
-    def get_pairings(self, **kwargs) -> list[list[Player]]:
+    def get_pairings(self, bye_player: str | None, **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
+        if bye_player is not None:
+            # remove bye_player from player list
+            players = [player for player in self.players if player.name != bye_player]
+        else:
+            players = self.players
+
+        if len(players) % 2 != 0:
+            # player list is still odd, add a bye player
+            players = players + [Player.bye_player()]
+
         pairing_matrix = round_pairings(
-            players=self.players,
+            players=players,
             rematch_cost=self.rematch_cost,
             within_fed_cost=self.within_fed_cost,
             experience_cost=self.experience_cost,
             elo_cost=self.elo_cost,
             **kwargs)
 
-        return player_pairs_from_matrix(pairing_matrix, self.players)
+        player_pairs = player_pairs_from_matrix(pairing_matrix, players)
 
-    def create_next_round(self, lichess_api_token: str, **kwargs):
+        # if bye player was provided, pair them now
+        if bye_player is not None:
+            player_pairs.append([self.get_player(bye_player), Player.bye_player()])
+
+        return player_pairs
+
+    def create_next_round(self, lichess_api_token: str, bye_player: str | None = None, **kwargs):
         """create games for next round"""
         round_num = self.next_round
         player_pairs = self.get_pairings(**kwargs)

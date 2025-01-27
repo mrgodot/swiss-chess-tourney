@@ -6,7 +6,7 @@ from tournament.player import Player
 
 
 def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed_cost: float,
-                          experience_cost: float, elo_cost: float, **kwargs) -> np.array:
+                          experience_cost: float, elo_cost: float, **kwargs) -> np.ndarray:
     """"apply cost function to each pairwise player pairing returning a symmetric cost matrix"""
 
     n = len(players)
@@ -34,7 +34,7 @@ def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed
     return cost_matrix
 
 
-def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.array:
+def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.ndarray:
     """use mixed integer linear programming to solve for optimal round pairings"""
 
     n = len(players)
@@ -72,7 +72,7 @@ def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.arr
     return pairing_matrix
 
 
-def player_pairs_from_matrix(pairing_matrix: np.array, players: list[Player]):
+def player_pairs_from_matrix(pairing_matrix: np.ndarray, players: list[Player]) -> list[list]:
     """extract player pairs from pairing matrix"""
     player_pairs = []
     matched_players = set()
