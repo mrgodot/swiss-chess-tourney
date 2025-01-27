@@ -69,7 +69,6 @@ class Tournament:
         self.games = []
 
         games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0)
-        games_df = games_df.replace("", np.nan).infer_objects()
 
         for round_num, series in games_df.iterrows():
             self.games.append(Game.from_series(series))
