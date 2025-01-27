@@ -32,7 +32,7 @@ def create_lichess_challenge(
         "clock.limit": clock_secs,  # in seconds
         "clock.increment": increment_secs,  # in seconds
         "variant": variant,
-        "rated": rated,
+        "rated": str(rated).lower(),
         "name": f"Round: {round_num}: {white_player.name} vs. {black_player.name} (expires: {expires_at_datetime})",
         "users": f"{white_player.handle},{black_player.handle}",
         "expiresAt": expires_at}
@@ -40,8 +40,9 @@ def create_lichess_challenge(
     response = requests.post(LICHESS_CHALLENGE, headers=headers, data=data)
 
     if response.status_code == 200:
-        game_link = response.json().get("challenge").get("url")
-        return game_link
+        results = response.json()
+        game_link = results.get("url")
+        return game_link        
     else:
         raise ValueError("Error: " + response.text)
 
