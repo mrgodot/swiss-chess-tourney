@@ -62,7 +62,7 @@ def expires_at_timestamp(days_until_expired) -> int:
         hour=0, minute=0, second=0, microsecond=0)
 
     # Calculate the expiration time (e.g. 7 days from now at midnight UTC)
-    expires_at_utc = last_utc_midnight + timedelta(days=days_until_expired)
+    expires_at_utc = last_utc_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
 
     # Convert the expiration time to a timestamp in milliseconds
     return int(expires_at_utc.timestamp() * MILLISECONDS_PER_SECOND)
