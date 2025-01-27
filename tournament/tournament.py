@@ -1,5 +1,6 @@
 from random import shuffle
 
+import numpy as np
 import pandas as pd
 from gspread_pandas import Spread
 from attrs import define, field
