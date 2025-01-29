@@ -15,7 +15,7 @@ SECONDS_PER_MIN = 60
 pd.set_option('future.no_silent_downcasting', True)
 
 
-@define
+@define(post_init=True)
 class Tournament:
     """
     Container for all tournament parameters and objects.
