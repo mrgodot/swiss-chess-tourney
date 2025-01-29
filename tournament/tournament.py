@@ -37,6 +37,14 @@ class Tournament:
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
 
+    def __attrs_post_init__(self):
+        """load tournament details"""
+        self._instantiate_player_list()
+        print(f"{len(self.players)} players created")
+        self._instantiate_game_list()
+        self._process_games()
+        print(f"{len(self.games)} games processessed ({self.games_in_progress} games in progress)")
+
     @property
     def next_round(self):
         if len(self.games) == 0:
@@ -44,14 +52,11 @@ class Tournament:
         else:
             return self.games[-1].round_num + 1
 
-    def __attrs_post_init__(self):
-        """load tournament details"""
-        self._instantiate_player_list()
-        print(f"{len(self.players)} players created.")
-        self._instantiate_game_list()
-        self._process_games()
-        print(f"{len(self.games)} processessed")
-
+    @property
+    def games_in_progress(self) -> int:
+        """return count of games in progress"""
+        return sum(game.in_progress for game in games)
+    
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
         if name == BYE_PLAYER:
