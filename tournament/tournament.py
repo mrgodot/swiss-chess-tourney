@@ -55,7 +55,7 @@ class Tournament:
     @property
     def games_in_progress(self) -> int:
         """return count of games in progress"""
-        return sum(game.in_progress for game in games)
+        return sum(game.in_progress for game in self.games)
     
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
