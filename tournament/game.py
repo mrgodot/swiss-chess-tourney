@@ -39,6 +39,11 @@ class Game:
     def bye(self):
         return self.black == BYE_PLAYER
 
+    @property
+    def in_progress(self) -> bool:
+        """True when game outcome is blank"""
+        return self.outcome == Outcome.PENDING
+
     def to_dict(self) -> dict:
         return {
             GamesSheetHeader.ROUND.value: self.round_num,
