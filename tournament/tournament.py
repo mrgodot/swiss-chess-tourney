@@ -47,10 +47,10 @@ class Tournament:
     def __post_init__(self):
         """load tournament details"""
         self._instantiate_player_list()
-        print(f"{len(self.players} players created.")
+        print(f"{len(self.players)} players created.")
         self._instantiate_game_list()
         self._process_games()
-        print(f"{len(self.games} processessed")
+        print(f"{len(self.games)} processessed")
 
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
