@@ -15,7 +15,7 @@ SECONDS_PER_MIN = 60
 pd.set_option('future.no_silent_downcasting', True)
 
 
-@define(post_init=True)
+@define
 class Tournament:
     """
     Container for all tournament parameters and objects.
@@ -44,7 +44,7 @@ class Tournament:
         else:
             return self.games[-1].round_num + 1
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         """load tournament details"""
         self._instantiate_player_list()
         print(f"{len(self.players)} players created.")
