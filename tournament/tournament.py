@@ -44,6 +44,14 @@ class Tournament:
         else:
             return self.games[-1].round_num + 1
 
+    def __post_init__(self):
+        """load tournament details"""
+        self._instantiate_player_list()
+        print(f"{len(self.players} players created.")
+        self._instantiate_game_list()
+        self._process_games()
+        print(f"{len(self.games} processessed")
+
     def get_player(self, name: str) -> Player:
         """return Player from list of players"""
         if name == BYE_PLAYER:
@@ -98,7 +106,7 @@ class Tournament:
 
     def update_leaderboard_sheet(self):
         """update and sort leaderboard spreadsheet"""
-
+        print("updating leaderboard sheet")
         # sort players by score and then elo
         self.players = sorted(self.players, key=lambda x: [x.score, x.elo], reverse=True)
 
@@ -110,7 +118,8 @@ class Tournament:
             sheet=self.leaderboard_sheet)
 
     def update_games_sheet(self):
-        """update and sort leaderboard spreadsheet"""
+        """update and sort game spreadsheet"""
+        print("updating games sheet")
         df = pd.DataFrame([game.to_dict() for game in self.games])
 
         def sum_value(game: Game, value: str):
@@ -128,16 +137,6 @@ class Tournament:
             df.drop(columns='rank'),
             index=False,
             sheet=self.games_sheet)
-
-    def update_tournament_state(self):
-        print("instantiating player list")
-        self._instantiate_player_list()
-        print("instantiating game list")
-        self._instantiate_game_list()
-        print("processing games")
-        self._process_games()
-        print("updating leaderboard")
-        self.update_leaderboard_sheet()
 
     def create_game(self, round_num: int, players: list[Player], lichess_api_token: str,
                     random_sides: bool = True, days_until_expired: int = 7, testing: bool = False,
@@ -212,7 +211,10 @@ class Tournament:
         return player_pairs
 
     def create_next_round(self, lichess_api_token: str, bye_players: str | list[str] | None = None, **kwargs):
-        """create games for next round"""
+        """create games for next round and update leaderboard and game sheets"""
+        # update leaderboard
+        self.update_leaderboard_sheet()
+        
         round_num = self.next_round
 
         if isinstance(bye_players, str):
@@ -228,6 +230,9 @@ class Tournament:
                 clock_secs=self.clock_secs,
                 increment_secs=self.increment_secs,
                 **kwargs)
+
+        # update game sheet
+        self.update_games_sheet()
 
     def white_odds(self, game: Game) -> float:
         """odds of white winning"""
