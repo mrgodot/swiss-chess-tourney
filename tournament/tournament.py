@@ -6,7 +6,7 @@ from gspread_pandas import Spread
 from attrs import define, field
 
 from tournament.game import Game
-from tournament.lichess import create_lichess_challenge
+from tournament.lichess import create_lichess_challenge, get_game, game_id_from_url
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds, BYE_PLAYER, GamesSheetHeader
