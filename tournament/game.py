@@ -35,7 +35,7 @@ class Game:
             match_link=series[GamesSheetHeader.MATCH_LINK.value],
             outcome=Outcome(series[GamesSheetHeader.OUTCOME.value]),
             expires=pd.to_datetime(series[GamesSheetHeader.EXPIRES.value]),
-            opening=series[GameSheetHeader.OPENING.value],
+            opening=series[GamesSheetHeader.OPENING.value],
         )
 
     @property
