@@ -219,8 +219,9 @@ class Tournament:
 
         return player_pairs
 
-    def add_current_round_oppenings(self):
+    def add_current_round_oppenings(self, round: int | None = None):
         """add opening to current round sheet"""
+        round = (round or self.current_round)
         games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index('Round')
         games_df.index = games_df.index.astype(int)
         
