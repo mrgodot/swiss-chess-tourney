@@ -219,14 +219,14 @@ class Tournament:
 
         return player_pairs
 
-    def add_current_round_oppenings(self, round: int | None = None):
+    def add_current_round_oppenings(self, round_num: int | None = None):
         """add opening to current round sheet"""
-        round = (round or self.current_round)
+        round_num = round_num or self.current_round
         games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index('Round')
         games_df.index = games_df.index.astype(int)
         
         game_id_from_url = lambda x: x.split('/')[-1]
-        games_df.loc[self.current_round, GamesSheetHeader.OPENING.value] = games_df.loc[self.current_round, :].apply(
+        games_df.loc[round_num, GamesSheetHeader.OPENING.value] = games_df.loc[round_num, :].apply(
             lambda x: get_game_from_id(game_id_from_url(x['Match Link'])).headers.get('Opening')
             if (
                 x[GamesSheetHeader.OUTCOME.value] not in {Outcome.PENDING.value, Outcome.EXPIRED.value} 
