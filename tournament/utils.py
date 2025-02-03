@@ -55,11 +55,11 @@ def white_odds(white_elo: float, black_elo: float) -> float:
     return 1 / (1 + 10 ** (-(white_elo - black_elo) / 400))
 
 
-def expires_at_timestamp(days_until_expired) -> int:
+def expires_at_timestamp(days_until_expired, timezone = pytz.timezone('US/Pacific')) -> int:
     """return timestamp when game expires"""
 
     # last midnight local
-    last_midnight = pd.Timestamp.now(pytz.timezone('US/Pacific')).normalize()
+    last_midnight = pd.Timestamp.now(timezone).normalize()
 
     # Calculate the expiration time
     expires_at = last_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
@@ -69,6 +69,6 @@ def expires_at_timestamp(days_until_expired) -> int:
     return epoch_secs * MILLISECONDS_PER_SECOND
 
 
-def timestamp_to_datetime(timestamp) -> datetime:
+def timestamp_to_datetime(timestamp, timezone = pytz.timezone('US/Pacific')) -> datetime:
     """convert UTC timestamp to datetime"""
-    return datetime.fromtimestamp(timestamp / MILLISECONDS_PER_SECOND)
+    return datetime.fromtimestamp(timestamp / MILLISECONDS_PER_SECOND).astimezone(timezone)
