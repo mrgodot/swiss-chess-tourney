@@ -57,6 +57,15 @@ def get_pgn(game_id, api_token=None) -> str:
     else:
         raise HTTPError
 
+def parse_pgn_from_string(pgn_str):
+    """convert pgn_str to pgn file"""
+    pgn_io = io.StringIO(pgn_str)
+    game = chess.pgn.read_game(pgn_io)
+    return game
+
+def get_game_from_id(game_id, api_token=None):
+    """get game from game_id"""
+    return parse_pgn_from_string(get_pgn(game_id, api_token))
 
 def get_game_result_from_pgn(pgn_data: str) -> str:
     # Use StringIO to simulate a file object
