@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 
+import pandas as pd
 import pytz
 
 
@@ -57,15 +58,15 @@ def white_odds(white_elo: float, black_elo: float) -> float:
 def expires_at_timestamp(days_until_expired) -> int:
     """return timestamp when game expires"""
 
-    # last midnight in epoch seconds
-    last_utc_midnight = datetime.now(pytz.UTC).replace(
-        hour=0, minute=0, second=0, microsecond=0)
+    # last midnight local
+    last_midnight = pd.Timestamp.now((pytz.timezone('US/Pacific')).normalize()
 
-    # Calculate the expiration time (e.g. 7 days from now at midnight UTC)
-    expires_at_utc = last_utc_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
+    # Calculate the expiration time
+    expires_at = last_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
 
     # Convert the expiration time to a timestamp in milliseconds
-    return int(expires_at_utc.timestamp() * MILLISECONDS_PER_SECOND)
+    epoch_secs = int(expires_at.astimezone('UTC').timestamp())
+    return epoch_secs * MILLISECONDS_PER_SECOND
 
 
 def timestamp_to_datetime(timestamp) -> datetime:
