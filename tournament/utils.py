@@ -48,6 +48,7 @@ class GamesSheetHeader(Enum):
     MATCH_LINK = 'Match Link'
     OUTCOME = 'Outcome'
     EXPIRES = 'Expires'
+    OPENING = 'Opening'
 
 
 def white_odds(white_elo: float, black_elo: float) -> float:
