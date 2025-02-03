@@ -46,11 +46,15 @@ class Tournament:
         print(f"{len(self.games)} games processessed ({self.games_in_progress} games in progress)")
 
     @property
-    def next_round(self):
+    def current_round(self):
         if len(self.games) == 0:
             return 1
         else:
-            return self.games[-1].round_num + 1
+            return self.games[-1].round_num
+            
+    @property
+    def next_round(self):
+        return self.current_round + 1
 
     @property
     def games_in_progress(self) -> int:
