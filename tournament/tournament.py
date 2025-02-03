@@ -228,7 +228,7 @@ class Tournament:
         games_df.loc[self.current_round, GamesSheetHeader.OPENING.value] = games_df.loc[self.current_round, :].apply(
             lambda x: get_game(game_id_from_url(x['Match Link'])).headers.get('Opening')
             if (
-                x[GamesSheetHeader.OUTCOME.value] not in {Outcome.PENDING.value, GamesSheetHeader.EXPIRED.value} 
+                x[GamesSheetHeader.OUTCOME.value] not in {Outcome.PENDING.value, Outcome.EXPIRED.value} 
                 and x[GamesSheetHeader.MATCH_LINK.value] != '' 
                 and x[GamesSheetHeader.BLACK.value] != BYE_PLAYER
             ) else '', axis=1
