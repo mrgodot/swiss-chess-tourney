@@ -59,7 +59,7 @@ def expires_at_timestamp(days_until_expired) -> int:
     """return timestamp when game expires"""
 
     # last midnight local
-    last_midnight = pd.Timestamp.now((pytz.timezone('US/Pacific')).normalize()
+    last_midnight = pd.Timestamp.now(pytz.timezone('US/Pacific')).normalize()
 
     # Calculate the expiration time
     expires_at = last_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
