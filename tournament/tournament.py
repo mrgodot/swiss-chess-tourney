@@ -6,7 +6,7 @@ from gspread_pandas import Spread
 from attrs import define, field
 
 from tournament.game import Game
-from tournament.lichess import create_lichess_challenge, get_game, game_id_from_url
+from tournament.lichess import create_lichess_challenge, get_game_from_id, game_id_from_url
 from tournament.optimization import round_pairings, player_pairs_from_matrix
 from tournament.player import Player
 from tournament.utils import expires_at_timestamp, timestamp_to_datetime, Outcome, white_odds, BYE_PLAYER, GamesSheetHeader
@@ -226,7 +226,7 @@ class Tournament:
         
         game_id_from_url = lambda x: x.split('/')[-1]
         games_df.loc[self.current_round, GamesSheetHeader.OPENING.value] = games_df.loc[self.current_round, :].apply(
-            lambda x: get_game(game_id_from_url(x['Match Link'])).headers.get('Opening')
+            lambda x: get_game_from_id(game_id_from_url(x['Match Link'])).headers.get('Opening')
             if (
                 x[GamesSheetHeader.OUTCOME.value] not in {Outcome.PENDING.value, Outcome.EXPIRED.value} 
                 and x[GamesSheetHeader.MATCH_LINK.value] != '' 
