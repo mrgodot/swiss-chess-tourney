@@ -16,6 +16,7 @@ class Game:
     match_link: str  # lichess url
     outcome: Outcome
     expires: datetime
+    opening: str
 
     @white.validator
     def not_bye(self, attribute, value):
@@ -33,7 +34,9 @@ class Game:
             games_played=series[GamesSheetHeader.GAMES_PLAYED.value],
             match_link=series[GamesSheetHeader.MATCH_LINK.value],
             outcome=Outcome(series[GamesSheetHeader.OUTCOME.value]),
-            expires=pd.to_datetime(series[GamesSheetHeader.EXPIRES.value]))
+            expires=pd.to_datetime(series[GamesSheetHeader.EXPIRES.value]),
+            opening=series[GameSheetHeader.OPENING.value],
+        )
 
     @property
     def bye(self):
@@ -53,7 +56,9 @@ class Game:
             GamesSheetHeader.GAMES_PLAYED.value: self.games_played,
             GamesSheetHeader.MATCH_LINK.value: self.match_link,
             GamesSheetHeader.OUTCOME.value: self.outcome.value,
-            GamesSheetHeader.EXPIRES.value: self.expires}
+            GamesSheetHeader.EXPIRES.value: self.expires,
+            GamesSheetHeader.OPENING.value: self.opening,
+        }
 
     def get_points(self, player: str) -> float:
         if self.outcome == Outcome.DRAW:
