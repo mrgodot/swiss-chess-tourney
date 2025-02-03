@@ -65,7 +65,7 @@ def expires_at_timestamp(days_until_expired) -> int:
     expires_at = last_midnight + timedelta(days=days_until_expired) - timedelta(seconds=1)
 
     # Convert the expiration time to a timestamp in milliseconds
-    epoch_secs = int(expires_at.astimezone('UTC').timestamp())
+    epoch_secs = int(expires_at.timestamp())
     return epoch_secs * MILLISECONDS_PER_SECOND
 
 
