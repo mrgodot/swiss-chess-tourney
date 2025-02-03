@@ -219,6 +219,26 @@ class Tournament:
 
         return player_pairs
 
+    def add_current_round_oppenings(self):
+        """add opening to current round sheet"""
+        games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index('Round')
+        games_df.index = games_df.index.astype(int)
+        
+        game_id_from_url = lambda x: x.split('/')[-1]
+        games_df.loc[self.current_round, GamesSheetHeader.OPENING.value] = games_df.loc[self.current_round, :].apply(
+            lambda x: get_game(game_id_from_url(x['Match Link'])).headers.get('Opening')
+            if (
+                x[GamesSheetHeader.OUTCOME.value] not in {'', GamesSheetHeader.EXPIRED.value} 
+                and x[GamesSheetHeader.MATCH_LINK.value] != '' 
+                and x[GamesSheetHeader.BLACK.value] != BYE_PLAYER
+            ) else '', axis=1
+        ).squeeze()
+        
+        self.spread.df_to_sheet(
+            games_df,
+            index=True,
+            sheet=self.games_sheet)
+
     def create_next_round(self, lichess_api_token: str, bye_players: str | list[str] | None = None, **kwargs):
         """create games for next round and update leaderboard and game sheets"""
         # update leaderboard
