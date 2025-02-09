@@ -14,6 +14,7 @@ class Game:
         score_delta: float = 0, games_played: int = 0, outcome: Outcome = Outcome.PENDING,
         opening: str = "",
     ):
+        self._validete_white_not_bye(white)
         self.round_num = int(round_num)
         self.white = white
         self.black = black
@@ -24,9 +25,8 @@ class Game:
         self.outcome = outcome
         self.opening = opening
 
-    @white.validator
-    def not_bye(self, attribute, value):
-        if value == 'bye':
+    def _validete_white_not_bye(self, white: str):
+        if white == BYE_PLAYER:
             raise ValueError('Bye player must be black')
 
     @classmethod
