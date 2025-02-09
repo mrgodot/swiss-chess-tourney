@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from attrs import define, field
+from attrs import define, field, field_validator
 import pandas as pd
 
 from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
