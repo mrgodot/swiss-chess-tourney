@@ -9,21 +9,21 @@ from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
 @define
 class Game:
     """lichess game object"""
-    def __init__(
-        self, round_num: int, white: str, black: str, match_link:str, expires: datetime,
-        score_delta: float = 0, games_played: int = 0, outcome: Outcome = Outcome.PENDING,
-        opening: str = "",
-    ):
-        self._validete_white_not_bye(white)
-        self.round_num = int(round_num)
-        self.white = white
-        self.black = black
-        self.match_link = match_link
-        self.expires = expires
-        self.score_delta = score_delta
-        self.games_played = games_played
-        self.outcome = outcome
-        self.opening = opening
+    round_num: int = field(converter=int)
+    white: str = field()
+    black: str
+    match_link: str
+    expires: datetime
+    score_delta: float = field(default=0)
+    games_played: int = field(default=0)
+    outcome: Outcome = field(default=Outcome.PENDING)
+    opening: str = field(default="")
+
+    @field_validator("white")
+    def _validate_white_not_bye(self, _: str, white: str) -> str:
+        if white == BYE_PLAYER:
+            raise ValueError("Bye player must be black")
+        return white
 
     def _validete_white_not_bye(self, white: str):
         if white == BYE_PLAYER:
