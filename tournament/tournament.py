@@ -182,7 +182,6 @@ class Tournament:
             score_delta=players[0].score - players[1].score if not is_bye else 0,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
-            outcome=Outcome.PENDING,
             expires=timestamp_to_datetime(expires_at))
 
         # add game to tournament
