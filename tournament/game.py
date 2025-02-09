@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from attrs import define, field, validator
+from attrs import define, field
 import pandas as pd
 
 from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
@@ -19,7 +19,7 @@ class Game:
     outcome: Outcome = field(default=Outcome.PENDING)
     opening: str = field(default="")
 
-    @validator("white")
+    @white.validator
     def _validate_white_not_bye(self, _: str, white: str) -> str:
         if white == BYE_PLAYER:
             raise ValueError("Bye player must be black")
