@@ -8,15 +8,21 @@ from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
 
 @define
 class Game:
-    round_num: int = field(converter=int)
-    white: str = field()  # player name
-    black: str  # player name
-    score_delta: float
-    games_played: int
-    match_link: str  # lichess url
-    outcome: Outcome
-    expires: datetime
-    opening: str
+    """lichess game object"""
+    def __init__(
+        self, round_num: int, white: str, black: str, match_link:str, expires: datetime,
+        score_delta: float = 0, games_played: int = 0, outcome: Outcome = Outcome.PENDING,
+        opening: str = "",
+    ):
+        self.round_num = int(round_num)
+        self.white = white
+        self.black = black
+        self.match_link = match_link
+        self.expires = expires
+        self.score_delta = score_delta
+        self.games_played = games_played
+        self.outcome = outcome
+        self.opening = opening
 
     @white.validator
     def not_bye(self, attribute, value):
