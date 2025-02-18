@@ -239,6 +239,9 @@ class Tournament:
             index=True,
             sheet=self.games_sheet)
 
+        # re-instantiate games to pull in openings
+        self._instantiate_game_list()
+
     def create_next_round(self, lichess_api_token: str, bye_players: str | list[str] | None = None, **kwargs):
         """create games for next round and update leaderboard and game sheets"""
         # update leaderboard
