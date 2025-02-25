@@ -37,6 +37,7 @@ class PlayerSheetHeader(Enum):
     EXPERIENCE = 'Experience'
     ELO = 'Elo'
     SCORE = 'Score'
+    WITHDRAWN = 'Withdrawn'
 
 
 class GamesSheetHeader(Enum):

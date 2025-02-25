@@ -29,7 +29,7 @@ class Tournament:
     # player pairing cost starts with abs score difference
     rematch_cost: float = 2.5  # cost to play the same player again
     within_fed_cost: float = 0.75  # cost to be paired within federation
-    experience_cost: float = 0.5  # early round sorting based on difference in experience
+    experience_cost: float = 1.0  # early round sorting based on difference in experience
     elo_cost: float = 0.0001  # tie-breaker based on abs elo difference
     initial_elo: int = field(default=1500)
     clock_secs: int = field(default=SECONDS_PER_MIN * 10)
@@ -191,11 +191,12 @@ class Tournament:
 
     def get_pairings(self, bye_players: list[str] | None, **kwargs) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
+        # remove withdrawn
+        players = [player for player in self.players if not player.withdrawn]
+
         if bye_players is not None:
             # remove bye_player from player list
-            players = [player for player in self.players if player.name not in bye_players]
-        else:
-            players = self.players
+            players = [player for player in players if player.name not in bye_players]
 
         if len(players) % 2 != 0:
             # player list is still odd, add a bye player
@@ -205,7 +206,7 @@ class Tournament:
             players=players,
             rematch_cost=self.rematch_cost,
             within_fed_cost=self.within_fed_cost,
-            experience_cost=self.experience_cost,
+            experience_cost=self.experience_cost / self.current_round,
             elo_cost=self.elo_cost,
             **kwargs)
 
@@ -218,7 +219,7 @@ class Tournament:
 
         return player_pairs
 
-    def add_current_round_oppenings(self, round_num: int | None = None):
+    def add_current_round_openings(self, round_num: int | None = None):
         """add opening to current round sheet"""
         round_num = round_num or self.current_round
         games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index('Round')

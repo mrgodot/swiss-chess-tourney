@@ -12,6 +12,7 @@ class Player:
     federation: str
     animal: AnimalClass
     elo: float
+    withdrawn: bool = field(default=False)
     games: list[Game] = field(factory=list, init=False)
 
     @classmethod
@@ -21,7 +22,9 @@ class Player:
             handle=series[PlayerSheetHeader.HANDLE.value],
             federation=series[PlayerSheetHeader.FEDERATION.value],
             animal=AnimalClass[series[PlayerSheetHeader.EXPERIENCE.value].upper()],
-            elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO)
+            elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO,
+            withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, 'FALSE')=='TRUE',
+        )
 
     @classmethod
     def bye_player(cls):
@@ -79,4 +82,4 @@ class Player:
         self.elo = initial_elo if not self.is_bye else BYE_PLAYER_ELO
 
     def __repr__(self) -> str:
-        return f"Player(name='{self.name}', handle='{self.handle}', federation='{self.federation}', elo={self.elo})"
+        return f"Player(name='{self.name}', handle='{self.handle}', federation='{self.federation}', elo={self.elo}, withdrawn={self.withdrawn})"
