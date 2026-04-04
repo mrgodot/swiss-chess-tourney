@@ -19,7 +19,7 @@ class Player:
         return cls(
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
-            elo=series[PlayerSheetHeader.ELO_INIT],
+            elo=series[PlayerSheetHeader.ELO_INIT.value],
             withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, "FALSE") == "TRUE",
             federation=series.get(PlayerSheetHeader.FEDERATION.value),
         )
