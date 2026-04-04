@@ -9,19 +9,19 @@ from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_
 class Player:
     name: str
     handle: str
-    federation: str
     elo: float
+    federation: str | None = None
     withdrawn: bool = field(default=False)
     games: list[Game] = field(factory=list, init=False)
 
     @classmethod
-    def from_series(cls, series: pd.Series, initial_elo: float):
+    def from_series(cls, series: pd.Series):
         return cls(
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
-            federation=series[PlayerSheetHeader.FEDERATION.value],
-            elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO,
+            elo=series[PlayerSheetHeader.ELO_INIT],
             withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, "FALSE") == "TRUE",
+            federation=series.get(PlayerSheetHeader.FEDERATION.value),
         )
 
     @classmethod

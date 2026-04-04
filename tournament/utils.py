@@ -26,6 +26,7 @@ class PlayerSheetHeader(Enum):
     PLAYER = "Player"
     HANDLE = "Lichess Handle"
     FEDERATION = "Federation"
+    ELO_INIT = "Initial Elo"
     ELO = "Elo"
     SCORE = "Score"
     WITHDRAWN = "Withdrawn"
