@@ -5,29 +5,37 @@ import cvxpy as cp
 from tournament.player import Player
 
 
-def calculate_cost_matrix(players: list[Player], rematch_cost: float, within_fed_cost: float,
-                          experience_cost: float, elo_cost: float, **kwargs) -> np.ndarray:
-    """"apply cost function to each pairwise player pairing returning a symmetric cost matrix"""
+def calculate_cost_matrix(
+    players: list[Player],
+    rematch_cost: float,
+    within_fed_cost: float,
+    elo_cost: float,
+    current_round: int = 1,
+    **kwargs
+) -> np.ndarray:
+    """ "apply cost function to each pairwise player pairing returning a symmetric cost matrix"""
 
     n = len(players)
 
     cost_matrix = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
-            # difference in experience
-            experience_delta = experience_cost * np.abs(players[i].animal.value - players[j].animal.value)
             # difference in player scores
             score_delta = np.abs(players[i].score - players[j].score)
             # penalize rematches
             rematch_penalty = rematch_cost * players[i].match_count(players[j].name)
             # penalize intra-federation match
             federation_penalty = within_fed_cost * float(
-                players[i].federation == players[j].federation)
-            # fractional elo difference to break ties
-            elo_difference = elo_cost * np.abs(players[i].elo - players[j].elo)
+                players[i].federation == players[j].federation
+            )
+            # elo difference decays by round so it seeds early rounds
+            # and fades as score_delta dominates
+            elo_difference = (elo_cost / current_round) * np.abs(
+                players[i].elo - players[j].elo
+            )
 
             # sum up costs
-            cost = experience_delta + score_delta + rematch_penalty + federation_penalty + elo_difference
+            cost = score_delta + rematch_penalty + federation_penalty + elo_difference
             cost_matrix[i, j] = cost
             cost_matrix[j, i] = cost  # symmetry
 
@@ -72,7 +80,9 @@ def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.nda
     return pairing_matrix
 
 
-def player_pairs_from_matrix(pairing_matrix: np.ndarray, players: list[Player]) -> list[list]:
+def player_pairs_from_matrix(
+    pairing_matrix: np.ndarray, players: list[Player]
+) -> list[list]:
     """extract player pairs from pairing matrix"""
     player_pairs = []
     matched_players = set()

@@ -8,21 +8,21 @@ import requests
 from tournament.player import Player
 from tournament.utils import timestamp_to_datetime
 
-
 LICHESS_CHALLENGE = "https://lichess.org/api/challenge/open"
 LICHESS_GAME_EXPORT = "https://lichess.org/game/export/"
 
 
 def create_lichess_challenge(
-        round_num: int,
-        white_player: Player,
-        black_player: Player,
-        clock_secs: int,
-        increment_secs: int,
-        expires_at: int,
-        variant: str = 'standard',
-        rated: bool = True,
-        api_token=None) -> str:
+    round_num: int,
+    white_player: Player,
+    black_player: Player,
+    clock_secs: int,
+    increment_secs: int,
+    expires_at: int,
+    variant: str = "standard",
+    rated: bool = True,
+    api_token=None,
+) -> str:
 
     headers = {"Authorization": f"Bearer {api_token}"}
 
@@ -35,14 +35,15 @@ def create_lichess_challenge(
         "rated": str(rated).lower(),
         "name": f"Round: {round_num}: {white_player.name} vs. {black_player.name} (expires: {expires_at_datetime})",
         "users": f"{white_player.handle},{black_player.handle}",
-        "expiresAt": expires_at}
+        "expiresAt": expires_at,
+    }
 
     response = requests.post(LICHESS_CHALLENGE, headers=headers, data=data)
 
     if response.status_code == 200:
         results = response.json()
         game_link = results.get("url")
-        return game_link        
+        return game_link
     else:
         raise ValueError("Error: " + response.text)
 
@@ -57,15 +58,18 @@ def get_pgn(game_id, api_token=None) -> str:
     else:
         raise HTTPError
 
+
 def parse_pgn_from_string(pgn_str):
     """convert pgn_str to pgn file"""
     pgn_io = io.StringIO(pgn_str)
     game = chess.pgn.read_game(pgn_io)
     return game
 
+
 def get_game_from_id(game_id, api_token=None):
     """get game from game_id"""
     return parse_pgn_from_string(get_pgn(game_id, api_token))
+
 
 def get_game_result_from_pgn(pgn_data: str) -> str:
     # Use StringIO to simulate a file object

@@ -9,6 +9,7 @@ from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
 @define
 class Game:
     """lichess game object"""
+
     round_num: int = field(converter=int)
     white: str = field()
     black: str
@@ -27,7 +28,7 @@ class Game:
 
     def _validete_white_not_bye(self, white: str):
         if white == BYE_PLAYER:
-            raise ValueError('Bye player must be black')
+            raise ValueError("Bye player must be black")
 
     @classmethod
     def from_series(cls, series: pd.Series):
@@ -70,10 +71,11 @@ class Game:
         if self.outcome == Outcome.DRAW:
             return 0.5
 
-        elif ((player == self.white and self.outcome == Outcome.WHITE)
-              or (player == self.black and self.outcome == Outcome.BLACK)):
+        elif (player == self.white and self.outcome == Outcome.WHITE) or (
+            player == self.black and self.outcome == Outcome.BLACK
+        ):
             return 1.0
 
         else:
             # losses and games that expire
-            return 0.
+            return 0.0

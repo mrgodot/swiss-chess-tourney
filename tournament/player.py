@@ -2,7 +2,7 @@ from attrs import define, field
 import pandas as pd
 
 from tournament.game import Game
-from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO, AnimalClass
+from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO
 
 
 @define
@@ -10,7 +10,6 @@ class Player:
     name: str
     handle: str
     federation: str
-    animal: AnimalClass
     elo: float
     withdrawn: bool = field(default=False)
     games: list[Game] = field(factory=list, init=False)
@@ -21,9 +20,8 @@ class Player:
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
             federation=series[PlayerSheetHeader.FEDERATION.value],
-            animal=AnimalClass[series[PlayerSheetHeader.EXPERIENCE.value].upper()],
             elo=initial_elo if series.name != BYE_PLAYER else BYE_PLAYER_ELO,
-            withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, 'FALSE')=='TRUE',
+            withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, "FALSE") == "TRUE",
         )
 
     @classmethod
@@ -32,8 +30,8 @@ class Player:
             name=BYE_PLAYER,
             handle=BYE_PLAYER,
             federation=BYE_PLAYER,
-            animal=AnimalClass.KOALA,
-            elo=BYE_PLAYER_ELO)
+            elo=BYE_PLAYER_ELO,
+        )
 
     @property
     def is_bye(self) -> bool:
@@ -56,15 +54,14 @@ class Player:
             PlayerSheetHeader.PLAYER.value: self.name,
             PlayerSheetHeader.HANDLE.value: self.handle,
             PlayerSheetHeader.FEDERATION.value: self.federation,
-            PlayerSheetHeader.EXPERIENCE.value: self.animal.name.capitalize(),
             PlayerSheetHeader.ELO.value: self.elo,
-            PlayerSheetHeader.SCORE.value: self.score}
+            PlayerSheetHeader.SCORE.value: self.score,
+        }
 
     def match_count(self, opponent: str) -> int:
         return sum(opponent in {game.white, game.black} for game in self.games)
 
-    def _update_elo(self, opponent_elo: float, points: float,
-                    k_factor: int = 100):
+    def _update_elo(self, opponent_elo: float, points: float, k_factor: int = 100):
         expected_score = 1 / (1 + 10 ** ((opponent_elo - self.elo) / 400))
         self.elo += k_factor * (points - expected_score)
 
@@ -73,9 +70,8 @@ class Player:
         self.games.append(game)
         if game.outcome != Outcome.EXPIRED and not game.bye:
             self._update_elo(
-                opponent_elo=opponent_elo,
-                points=game.get_points(self.name),
-                **kwargs)
+                opponent_elo=opponent_elo, points=game.get_points(self.name), **kwargs
+            )
 
     def reset(self, initial_elo: float):
         self.games = []
