@@ -88,7 +88,7 @@ class Tournament:
         players_df = self.spread.sheet_to_df(sheet=self.leaderboard_sheet)
 
         for name, series in players_df.iterrows():
-            self.players.append(Player.from_series(series, self.initial_elo))
+            self.players.append(Player.from_series(series))
 
     def _instantiate_game_list(self):
         """instantiate list of Games from Google spreadsheet"""
