@@ -33,6 +33,7 @@ class Player:
             name=BYE_PLAYER,
             handle=BYE_PLAYER,
             federation=BYE_PLAYER,
+            elo_init=BYE_PLAYER_ELO,
             elo=BYE_PLAYER_ELO,
         )
 
