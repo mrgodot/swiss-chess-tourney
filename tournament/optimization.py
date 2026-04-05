@@ -1,17 +1,15 @@
-import numpy as np
-
 import cvxpy as cp
+import numpy as np
 
 from tournament.player import Player
 
 
 def calculate_cost_matrix(
+    *,
     players: list[Player],
     rematch_cost: float,
     within_fed_cost: float,
     elo_cost: float,
-    current_round: int = 1,
-    **kwargs
 ) -> np.ndarray:
     """ "apply cost function to each pairwise player pairing returning a symmetric cost matrix"""
 
@@ -25,14 +23,10 @@ def calculate_cost_matrix(
             # penalize rematches
             rematch_penalty = rematch_cost * players[i].match_count(players[j].name)
             # penalize intra-federation match
-            federation_penalty = within_fed_cost * float(
-                players[i].federation == players[j].federation
-            )
+            federation_penalty = within_fed_cost * float(players[i].federation == players[j].federation)
             # elo difference decays by round so it seeds early rounds
             # and fades as score_delta dominates
-            elo_difference = (elo_cost / current_round) * np.abs(
-                players[i].elo - players[j].elo
-            )
+            elo_difference = elo_cost * np.abs(players[i].elo - players[j].elo)
 
             # sum up costs
             cost = score_delta + rematch_penalty + federation_penalty + elo_difference
@@ -42,12 +36,24 @@ def calculate_cost_matrix(
     return cost_matrix
 
 
-def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.ndarray:
+def round_pairings(
+    *,
+    players: list[Player],
+    rematch_cost: float,
+    within_fed_cost: float,
+    elo_cost: float,
+    solver=cp.GLPK_MI,
+) -> np.ndarray:
     """use mixed integer linear programming to solve for optimal round pairings"""
 
     n = len(players)
 
-    cost_matrix = calculate_cost_matrix(players, **kwargs)
+    cost_matrix = calculate_cost_matrix(
+        players=players,
+        rematch_cost=rematch_cost,
+        within_fed_cost=within_fed_cost,
+        elo_cost=elo_cost,
+    )
 
     # pairing matrix
     x = cp.Variable((n, n), boolean=True)
@@ -80,9 +86,7 @@ def round_pairings(players: list[Player], solver=cp.GLPK_MI, **kwargs) -> np.nda
     return pairing_matrix
 
 
-def player_pairs_from_matrix(
-    pairing_matrix: np.ndarray, players: list[Player]
-) -> list[list]:
+def player_pairs_from_matrix(pairing_matrix: np.ndarray, players: list[Player]) -> list[list]:
     """extract player pairs from pairing matrix"""
     player_pairs = []
     matched_players = set()

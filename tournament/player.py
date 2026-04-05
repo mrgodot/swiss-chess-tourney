@@ -1,14 +1,15 @@
-from attrs import define, field
 import pandas as pd
+from attrs import define, field
 
 from tournament.game import Game
-from tournament.utils import Outcome, PlayerSheetHeader, BYE_PLAYER, BYE_PLAYER_ELO
+from tournament.utils import BYE_PLAYER, BYE_PLAYER_ELO, Outcome, PlayerSheetHeader
 
 
 @define
 class Player:
     name: str
     handle: str
+    elo_init: float  # elo at start of tournament
     elo: float
     federation: str | None = None
     withdrawn: bool = field(default=False)
@@ -16,10 +17,12 @@ class Player:
 
     @classmethod
     def from_series(cls, series: pd.Series):
+        elo_init = float(series[PlayerSheetHeader.ELO_INIT.value])
         return cls(
             name=str(series.name),
             handle=series[PlayerSheetHeader.HANDLE.value],
-            elo=series[PlayerSheetHeader.ELO_INIT.value],
+            elo_init=elo_init,
+            elo=elo_init,
             withdrawn=series.get(PlayerSheetHeader.WITHDRAWN.value, "FALSE") == "TRUE",
             federation=series.get(PlayerSheetHeader.FEDERATION.value),
         )
@@ -54,6 +57,7 @@ class Player:
             PlayerSheetHeader.PLAYER.value: self.name,
             PlayerSheetHeader.HANDLE.value: self.handle,
             PlayerSheetHeader.FEDERATION.value: self.federation,
+            PlayerSheetHeader.ELO_INIT.value: self.elo_init,
             PlayerSheetHeader.ELO.value: self.elo,
             PlayerSheetHeader.SCORE.value: self.score,
         }
@@ -69,13 +73,15 @@ class Player:
         """add game to player list and update player elo based on `game.outcome`. pass k_factor to _update_elo."""
         self.games.append(game)
         if game.outcome != Outcome.EXPIRED and not game.bye:
-            self._update_elo(
-                opponent_elo=opponent_elo, points=game.get_points(self.name), **kwargs
-            )
+            self._update_elo(opponent_elo=opponent_elo, points=game.get_points(self.name), **kwargs)
 
-    def reset(self, initial_elo: float):
+    def reset(self):
         self.games = []
-        self.elo = initial_elo if not self.is_bye else BYE_PLAYER_ELO
+        self.elo = self.elo_init
 
     def __repr__(self) -> str:
-        return f"Player(name='{self.name}', handle='{self.handle}', federation='{self.federation}', elo={self.elo}, withdrawn={self.withdrawn})"
+        return (
+            f"Player(name='{self.name}', handle='{self.handle}', "
+            f"federation='{self.federation}', elo={self.elo}, "
+            f"score={self.score}, rounds_played={self.rounds_played}, withdrawn={self.withdrawn})"
+        )

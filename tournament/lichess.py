@@ -1,8 +1,8 @@
+import io
 from urllib.error import HTTPError
 
 import chess
 import chess.pgn
-import io
 import requests
 
 from tournament.player import Player
@@ -12,7 +12,13 @@ LICHESS_CHALLENGE = "https://lichess.org/api/challenge/open"
 LICHESS_GAME_EXPORT = "https://lichess.org/game/export/"
 
 
+def game_id_from_url(url: str) -> str:
+    """extract game id from lichess game url"""
+    return url.split("/")[-1]
+
+
 def create_lichess_challenge(
+    *,
     round_num: int,
     white_player: Player,
     black_player: Player,

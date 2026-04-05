@@ -1,21 +1,20 @@
 from random import shuffle
 
-import numpy as np
 import pandas as pd
-from gspread_pandas import Spread
 from attrs import define, field
+from gspread_pandas import Spread
 
 from tournament.game import Game
-from tournament.lichess import create_lichess_challenge, get_game_from_id
-from tournament.optimization import round_pairings, player_pairs_from_matrix
+from tournament.lichess import create_lichess_challenge, game_id_from_url, get_game_from_id
+from tournament.optimization import player_pairs_from_matrix, round_pairings
 from tournament.player import Player
 from tournament.utils import (
-    expires_at_timestamp,
-    timestamp_to_datetime,
-    Outcome,
-    white_odds,
     BYE_PLAYER,
     GamesSheetHeader,
+    Outcome,
+    expires_at_timestamp,
+    timestamp_to_datetime,
+    white_odds,
 )
 
 SECONDS_PER_MIN = 60
@@ -34,11 +33,13 @@ class Tournament:
     spread: Spread
     leaderboard_sheet: str
     games_sheet: str
-    # player pairing cost starts with abs score difference
+
+    # weights for optimization cost function
     rematch_cost: float = 2.5  # cost to play the same player again
     within_fed_cost: float = 0.75  # cost to be paired within federation
     elo_cost: float = 0.005  # elo-based seeding cost, decays each round
-    initial_elo: int = field(default=1500)
+
+    # tournament params
     clock_secs: int = field(default=SECONDS_PER_MIN * 10)
     increment_secs: int = field(default=5)
     players: list[Player] = field(factory=list, init=False)
@@ -50,14 +51,12 @@ class Tournament:
         print(f"{len(self.players)} players created")
         self._instantiate_game_list()
         self._process_games()
-        print(
-            f"{len(self.games)} games processessed ({self.games_in_progress} games in progress)"
-        )
+        print(f"{len(self.games)} games processessed ({self.games_in_progress} games in progress)")
 
     @property
     def current_round(self):
         if len(self.games) == 0:
-            return 1
+            return 0
         else:
             return self.games[-1].round_num
 
@@ -106,10 +105,10 @@ class Tournament:
                 self.update_players(game, **kwargs)
 
     def reset(self):
-        """reset tournament to the start of round 1"""
+        """reset the tournament to the start of round 1"""
         self.games = []
         for player in self.players:
-            player.reset(self.initial_elo)
+            player.reset()
 
     def update_players(self, game: Game, **kwargs):
         """add game to players and update elo"""
@@ -126,9 +125,7 @@ class Tournament:
         """update and sort leaderboard spreadsheet"""
         print("updating leaderboard sheet")
         # sort players by score and then elo
-        self.players = sorted(
-            self.players, key=lambda x: [x.score, x.elo], reverse=True
-        )
+        self.players = sorted(self.players, key=lambda x: [x.score, x.elo], reverse=True)
 
         df = pd.DataFrame([player.to_dict() for player in self.players])
 
@@ -140,12 +137,7 @@ class Tournament:
         df = pd.DataFrame([game.to_dict() for game in self.games])
 
         def sum_value(game: Game, value: str):
-            return sum(
-                [
-                    getattr(self.get_player(player), value)
-                    for player in [game.white, game.black]
-                ]
-            )
+            return sum([getattr(self.get_player(player), value) for player in [game.white, game.black]])
 
         # sort df by round, byes on bottom, highest rated matches first
         df["rank"] = [
@@ -160,21 +152,19 @@ class Tournament:
 
         df = df.sort_values("rank")
 
-        self.spread.df_to_sheet(
-            df.drop(columns="rank"), index=False, sheet=self.games_sheet
-        )
+        self.spread.df_to_sheet(df.drop(columns="rank"), index=False, sheet=self.games_sheet)
 
     def create_game(
         self,
+        *,
         round_num: int,
         players: list[Player],
         lichess_api_token: str,
         random_sides: bool = True,
         days_until_expired: int = 7,
         testing: bool = False,
-        **kwargs,
     ) -> Game:
-        """create a Game between the two `players`. Use kwargs to pass additional params to `create_lichess_challenge"""
+        """create a Game between the two `players`."""
 
         # check for bye
         is_bye = any(player.is_bye for player in players)
@@ -196,8 +186,9 @@ class Tournament:
                 white_player=players[0],
                 black_player=players[1],
                 api_token=lichess_api_token,
+                clock_secs=self.clock_secs,
+                increment_secs=self.increment_secs,
                 expires_at=expires_at,
-                **kwargs,
             )
 
         game = Game(
@@ -215,9 +206,7 @@ class Tournament:
 
         return game
 
-    def get_pairings(
-        self, bye_players: list[str] | None, **kwargs
-    ) -> list[list[Player]]:
+    def get_pairings(self, bye_players: list[str] | None) -> list[list[Player]]:
         """determine optimal player pairing to minimize cost function"""
         # remove withdrawn
         players = [player for player in self.players if not player.withdrawn]
@@ -235,8 +224,6 @@ class Tournament:
             rematch_cost=self.rematch_cost,
             within_fed_cost=self.within_fed_cost,
             elo_cost=self.elo_cost,
-            current_round=self.current_round,
-            **kwargs,
         )
 
         player_pairs = player_pairs_from_matrix(pairing_matrix, players)
@@ -251,22 +238,16 @@ class Tournament:
     def add_current_round_openings(self, round_num: int | None = None):
         """add opening to current round sheet"""
         round_num = round_num or self.current_round
-        games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index(
-            "Round"
-        )
+        games_df = self.spread.sheet_to_df(sheet=self.games_sheet, index=0).set_index("Round")
         games_df.index = games_df.index.astype(int)
 
-        game_id_from_url = lambda x: x.split("/")[-1]
         games_df.loc[round_num, GamesSheetHeader.OPENING.value] = (
             games_df.loc[round_num, :]
             .apply(
                 lambda x: (
-                    get_game_from_id(game_id_from_url(x["Match Link"])).headers.get(
-                        "Opening"
-                    )
+                    get_game_from_id(game_id_from_url(x["Match Link"])).headers.get("Opening")
                     if (
-                        x[GamesSheetHeader.OUTCOME.value]
-                        not in {Outcome.PENDING.value, Outcome.EXPIRED.value}
+                        x[GamesSheetHeader.OUTCOME.value] not in {Outcome.PENDING.value, Outcome.EXPIRED.value}
                         and x[GamesSheetHeader.MATCH_LINK.value] != ""
                         and x[GamesSheetHeader.BLACK.value] != BYE_PLAYER
                     )
@@ -286,7 +267,7 @@ class Tournament:
         self,
         lichess_api_token: str,
         bye_players: str | list[str] | None = None,
-        **kwargs,
+        testing: bool = False,
     ):
         """create games for next round and update leaderboard and game sheets"""
         # update leaderboard
@@ -297,16 +278,14 @@ class Tournament:
         if isinstance(bye_players, str):
             bye_players = [bye_players]
 
-        player_pairs = self.get_pairings(bye_players=bye_players, **kwargs)
+        player_pairs = self.get_pairings(bye_players=bye_players)
 
         for players in player_pairs:
             self.create_game(
                 round_num=round_num,
                 players=players,
                 lichess_api_token=lichess_api_token,
-                clock_secs=self.clock_secs,
-                increment_secs=self.increment_secs,
-                **kwargs,
+                testing=testing,
             )
 
         # update game sheet
@@ -314,6 +293,40 @@ class Tournament:
 
     def white_odds(self, game: Game) -> float:
         """odds of white winning"""
-        return white_odds(
-            self.get_player(game.white).elo, self.get_player(game.black).elo
-        )
+        return white_odds(self.get_player(game.white).elo, self.get_player(game.black).elo)
+
+
+if __name__ == "__main__":
+    import os
+
+    import gspread
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    lichess_api_token = os.environ["LICHESS_API_TOKEN"]
+
+    gc = gspread.oauth(
+        scopes=[
+            "openid",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/userinfo.email",
+        ]
+    )
+    spread = Spread(spread=os.environ["SPREAD_ID"], creds=gc.auth)
+
+    tournament = Tournament(
+        name="testing",
+        spread=spread,
+        leaderboard_sheet="Leaderboard",
+        games_sheet="Games",
+    )
+
+    # inspect tournament state
+    print(f"current round: {tournament.current_round}")
+    for player in tournament.players:
+        print(player)
+
+    # test round creation
+    tournament.create_next_round(lichess_api_token=lichess_api_token, testing=True)

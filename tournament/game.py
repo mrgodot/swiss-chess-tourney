@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from attrs import define, field
 import pandas as pd
+from attrs import define, field
 
-from tournament.utils import Outcome, GamesSheetHeader, BYE_PLAYER
+from tournament.utils import BYE_PLAYER, GamesSheetHeader, Outcome
 
 
 @define
