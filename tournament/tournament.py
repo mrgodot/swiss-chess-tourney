@@ -42,6 +42,9 @@ class Tournament:
     # tournament params
     clock_secs: int = field(default=SECONDS_PER_MIN * 10)
     increment_secs: int = field(default=5)
+    days_until_expired: int = field(default=7)
+
+    # tournament state
     players: list[Player] = field(factory=list, init=False)
     games: list[Game] = field(factory=list, init=False)
 
@@ -161,7 +164,6 @@ class Tournament:
         players: list[Player],
         lichess_api_token: str,
         random_sides: bool = True,
-        days_until_expired: int = 7,
         testing: bool = False,
     ) -> Game:
         """create a Game between the two `players`."""
@@ -176,7 +178,7 @@ class Tournament:
             # randomize sides
             shuffle(players)
 
-        expires_at = expires_at_timestamp(days_until_expired)
+        expires_at = expires_at_timestamp(self.days_until_expired)
 
         if testing or is_bye:
             game_link = ""
