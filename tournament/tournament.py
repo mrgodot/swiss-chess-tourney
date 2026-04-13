@@ -198,6 +198,8 @@ class Tournament:
             white=players[0].name,
             black=players[1].name,
             score_delta=players[0].score - players[1].score if not is_bye else 0,
+            elo_delta=players[0].elo - players[1].elo if not is_bye else 0,
+            within_federation=players[0].federation == players[1].federation if not is_bye else False,
             games_played=players[0].match_count(players[1].name),
             match_link=game_link,
             expires=timestamp_to_datetime(expires_at),

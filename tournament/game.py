@@ -16,9 +16,11 @@ class Game:
     match_link: str
     expires: datetime
     score_delta: float = field(default=0)
+    elo_delta: float = field(default=0)
     games_played: int = field(default=0)
     outcome: Outcome = field(default=Outcome.PENDING)
     opening: str = field(default="")
+    within_federation: bool = field(default=False)
 
     @white.validator
     def _validate_white_not_bye(self, _: str, white: str) -> str:
@@ -59,12 +61,14 @@ class Game:
             GamesSheetHeader.ROUND.value: self.round_num,
             GamesSheetHeader.WHITE.value: self.white,
             GamesSheetHeader.BLACK.value: self.black,
-            GamesSheetHeader.SCORE_DELTA.value: self.score_delta,
-            GamesSheetHeader.GAMES_PLAYED.value: self.games_played,
             GamesSheetHeader.MATCH_LINK.value: self.match_link,
             GamesSheetHeader.OUTCOME.value: self.outcome.value,
             GamesSheetHeader.EXPIRES.value: self.expires,
             GamesSheetHeader.OPENING.value: self.opening,
+            GamesSheetHeader.GAMES_PLAYED.value: self.games_played,
+            GamesSheetHeader.SCORE_DELTA.value: self.score_delta,
+            GamesSheetHeader.ELO_DELTA.value: self.elo_delta,
+            GamesSheetHeader.WITHIN_FEDERATION.value: self.within_federation,
         }
 
     def get_points(self, player: str) -> float:

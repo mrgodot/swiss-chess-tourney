@@ -37,6 +37,8 @@ class GamesSheetHeader(Enum):
     WHITE = "White"
     BLACK = "Black"
     SCORE_DELTA = "Score Delta"
+    ELO_DELTA = "Elo Delta"
+    WITHIN_FEDERATION = "Within Federation"
     GAMES_PLAYED = "Games Played"
     MATCH_LINK = "Match Link"
     OUTCOME = "Outcome"
