@@ -37,12 +37,12 @@ class Tournament:
     # weights for optimization cost function
     rematch_cost: float = 2.5  # cost to play the same player again
     within_fed_cost: float = 0.75  # cost to be paired within federation
-    elo_cost: float = 0.005  # elo-based seeding cost, decays each round
+    elo_cost: float = 0.005  # elo-based seeding cost
 
     # tournament params
     clock_secs: int = field(default=SECONDS_PER_MIN * 10)
     increment_secs: int = field(default=5)
-    days_until_expired: int = field(default=7)
+    days_until_expired: int = field(default=6)
 
     # tournament state
     players: list[Player] = field(factory=list, init=False)
@@ -306,8 +306,6 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    lichess_api_token = os.environ["LICHESS_API_TOKEN"]
-
     gc = gspread.oauth(
         scopes=[
             "openid",
@@ -319,16 +317,12 @@ if __name__ == "__main__":
     spread = Spread(spread=os.environ["SPREAD_ID"], creds=gc.auth)
 
     tournament = Tournament(
-        name="testing",
+        name="2026 Wartsila Chess Tournament",
         spread=spread,
         leaderboard_sheet="Leaderboard",
         games_sheet="Games",
     )
 
-    # inspect tournament state
-    print(f"current round: {tournament.current_round}")
-    for player in tournament.players:
-        print(player)
-
-    # test round creation
+    # round creation
+    lichess_api_token = os.environ["LICHESS_API_TOKEN"]
     tournament.create_next_round(lichess_api_token=lichess_api_token, testing=True)

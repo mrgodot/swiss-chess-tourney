@@ -61,6 +61,7 @@ class Player:
             PlayerSheetHeader.ELO_INIT.value: self.elo_init,
             PlayerSheetHeader.ELO.value: self.elo,
             PlayerSheetHeader.SCORE.value: self.score,
+            PlayerSheetHeader.WITHDRAWN.value: self.withdrawn,
         }
 
     def match_count(self, opponent: str) -> int:
